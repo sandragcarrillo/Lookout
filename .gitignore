@@ -1,0 +1,37 @@
+
+Copy
+
+# Dependencies
+node_modules/
+lib/
+ 
+# Foundry
+out/
+cache/
+broadcast/
+ 
+# Environment
+.env
+.env.*
+!.env.example
+ 
+# Keys (never ever)
+*.key
+*.pem
+ 
+# OS
+.DS_Store
+Thumbs.db
+ 
+# IDE
+.vscode/
+.idea/
+ 
+# Next.js
+.next/
+out/
+ 
+# Misc
+*.log
+
+CLAUDE.md

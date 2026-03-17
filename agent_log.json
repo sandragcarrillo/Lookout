@@ -1,0 +1,143 @@
+{
+  "agent": "Lookout",
+  "version": "1.0.0",
+  "agentAddress": "[TBD]",
+  "erc8004TokenId": "[TBD]",
+  "runs": [
+    {
+      "runId": "run_001",
+      "type": "audit",
+      "status": "template",
+      "note": "This entry documents the expected schema. Replace with real run data after first deployment.",
+      "startedAt": "[TBD]",
+      "completedAt": "[TBD]",
+      "durationMs": "[TBD]",
+      "chain": "celo",
+
+      "input": {
+        "targetAddress": "[TBD]",
+        "requestedBy": "[TBD]",
+        "trigger": "api-call"
+      },
+
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Fetch transaction history",
+          "reasoning": "Need at least 1 transaction to compute any score component. Abort if address has no history.",
+          "outcome": "[TBD]"
+        },
+        {
+          "step": 2,
+          "decision": "Classify transactions",
+          "reasoning": "Categorize each tx as swap, transfer, contract-call, or failed to compute successRate and counterparties.",
+          "outcome": "[TBD]"
+        },
+        {
+          "step": 3,
+          "decision": "Apply scoring model",
+          "reasoning": "Calculate base score + bonuses + penalties. Clamp to [0, 100].",
+          "outcome": "[TBD]"
+        },
+        {
+          "step": 4,
+          "decision": "Generate recibo",
+          "reasoning": "Create human-readable audit report and upload to IPFS for onchain reference.",
+          "outcome": "[TBD]"
+        },
+        {
+          "step": 5,
+          "decision": "Write score onchain",
+          "reasoning": "Call TrustRegistry.updateScore() only after all steps above succeed. Never write partial results.",
+          "outcome": "[TBD]"
+        }
+      ],
+
+      "toolCalls": [
+        {
+          "tool": "blockscout_api",
+          "action": "GET /api?module=account&action=txlist&address={target}",
+          "startedAt": "[TBD]",
+          "completedAt": "[TBD]",
+          "durationMs": "[TBD]",
+          "success": "[TBD]",
+          "txsFetched": "[TBD]",
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "erc8004_identity_read",
+          "action": "ownerOf({erc8004TokenId})",
+          "startedAt": "[TBD]",
+          "completedAt": "[TBD]",
+          "durationMs": "[TBD]",
+          "success": "[TBD]",
+          "result": "[TBD]",
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "checkVerification({targetAddress})",
+          "startedAt": "[TBD]",
+          "completedAt": "[TBD]",
+          "durationMs": "[TBD]",
+          "success": "[TBD]",
+          "isHumanBacked": "[TBD]",
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo({reportJson})",
+          "startedAt": "[TBD]",
+          "completedAt": "[TBD]",
+          "durationMs": "[TBD]",
+          "success": "[TBD]",
+          "cid": "[TBD]",
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "trust_registry_write",
+          "action": "updateScore(address,uint256,ScoreBreakdown,string)",
+          "startedAt": "[TBD]",
+          "completedAt": "[TBD]",
+          "durationMs": "[TBD]",
+          "success": "[TBD]",
+          "txHash": "[TBD]",
+          "blockNumber": "[TBD]",
+          "gasUsed": "[TBD]",
+          "retries": 0,
+          "error": null
+        }
+      ],
+
+      "output": {
+        "targetAddress": "[TBD]",
+        "score": "[TBD]",
+        "level": "[TBD]",
+        "breakdown": {
+          "txCount": "[TBD]",
+          "successRate": "[TBD]",
+          "accountAge": "[TBD]",
+          "counterparties": "[TBD]",
+          "selfBonus": "[TBD]",
+          "ensBonus": "[TBD]",
+          "consistencyBonus": "[TBD]",
+          "penalties": "[TBD]"
+        },
+        "isHumanBacked": "[TBD]",
+        "reportCID": "[TBD]",
+        "txHash": "[TBD]"
+      },
+
+      "computeMetrics": {
+        "totalApiCalls": "[TBD]",
+        "totalRetries": 0,
+        "totalDurationMs": "[TBD]",
+        "estimatedCostUsd": "[TBD]"
+      }
+    }
+  ]
+}

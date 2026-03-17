@@ -1,0 +1,25 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.20"
+optimizer = true
+optimizer_runs = 200
+via_ir = false
+ 
+[profile.default.fuzz]
+runs = 1000
+ 
+[rpc_endpoints]
+celo = "${CELO_RPC_URL}"
+base = "${BASE_RPC_URL}"
+celo_testnet   = "${CELO_TESTNET_RPC_URL}"
+base_sepolia   = "https://sepolia.base.org"
+status_sepolia = "https://public.sepolia.rpc.status.network"
+ 
+[etherscan]
+celo          = { key = "${CELOSCAN_API_KEY}", url = "https://api.celoscan.io/api" }
+celo_testnet  = { key = "any", url = "https://celo-sepolia.blockscout.com/api?" }
+base          = { key = "${BASESCAN_API_KEY}", url = "https://api.basescan.org/api" }
+base_sepolia   = { key = "${BASESCAN_API_KEY}", url = "https://api-sepolia.basescan.org/api" }
+status_sepolia = { key = "any", url = "https://sepoliascan.status.network/api?" }

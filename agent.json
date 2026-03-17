@@ -1,0 +1,152 @@
+{
+  "name": "Lookout",
+  "version": "1.0.0",
+  "description": "Onchain reputation scoring protocol for AI agents. Audits on-chain behavior, integrates ZK identity via Self Protocol, and writes composable TrustScores that any agent, dApp, or human can query before transacting.",
+  "tagline": "The credit score for AI agents — onchain, composable, ZK-verified.",
+
+  "identity": {
+    "agentAddress": "[TBD]",
+    "erc8004Registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "erc8004TokenId": "[TBD]",
+    "ensName": "[TBD]",
+    "operator": "[TBD]"
+  },
+
+  "runtime": {
+    "type": "claude-code",
+    "model": "claude-sonnet-4-6",
+    "autonomy": "semi-autonomous",
+    "triggerModes": ["api-call", "manual", "scheduled"]
+  },
+
+  "tools": [
+    {
+      "name": "blockscout_api",
+      "description": "Fetch transaction history for a wallet on Celo via Blockscout",
+      "endpoint": "https://explorer.celo.org/mainnet/api"
+    },
+    {
+      "name": "basescan_api",
+      "description": "Fetch transaction history for a wallet on Base via Basescan",
+      "endpoint": "https://api.basescan.org/api"
+    },
+    {
+      "name": "trust_registry_write",
+      "description": "Write TrustScore and audit breakdown onchain via TrustRegistry.updateScore()",
+      "contract": "[TBD]",
+      "method": "updateScore(address,uint256,ScoreBreakdown,string)"
+    },
+    {
+      "name": "erc8004_identity_read",
+      "description": "Read ERC-8004 IdentityRegistry to verify agent ownership and metadata",
+      "contract": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    },
+    {
+      "name": "self_protocol_verify",
+      "description": "Verify ZK human-backed status via Self Protocol SDK (app.ai.self.xyz)",
+      "endpoint": "https://app.ai.self.xyz"
+    },
+    {
+      "name": "ens_resolver",
+      "description": "Resolve ENS names for agent addresses",
+      "endpoint": "https://mainnet.base.org"
+    },
+    {
+      "name": "ipfs_upload",
+      "description": "Upload human-readable audit report (recibo) to IPFS and return CID"
+    }
+  ],
+
+  "capabilities": [
+    "Fetch and classify on-chain transactions (swaps, transfers, contract calls, failures)",
+    "Calculate TrustScore (0-100) using behavioral scoring model",
+    "Write scores and audit breakdowns onchain via TrustRegistry",
+    "Generate human-readable audit reports (recibos) stored on IPFS",
+    "Verify ZK human-backed identity via Self Protocol",
+    "Resolve ENS names for agent addresses",
+    "Batch-evaluate multiple agents simultaneously",
+    "Serve trust data to other agents via REST API and direct contract reads"
+  ],
+
+  "scoringModel": {
+    "range": "0-100",
+    "baseScore": {
+      "txCount": { "max": 15, "description": "More txs = more behavioral data" },
+      "successRate": { "max": 15, "description": "% of txs that did not revert" },
+      "accountAge": { "max": 15, "description": "Days since first on-chain tx" },
+      "counterparties": { "max": 15, "description": "Unique addresses interacted with" }
+    },
+    "bonuses": {
+      "selfVerified": { "value": 15, "description": "Human verified via Self Protocol ZK proof" },
+      "ensName": { "value": 5, "description": "Agent has ENS identity" },
+      "consistency": { "value": 10, "description": "Regular activity, no suspicious bursts" }
+    },
+    "penalties": {
+      "highRevertRate": { "value": -10, "description": ">20% of txs fail" },
+      "dormant": { "value": -5, "description": "No activity in 30+ days" },
+      "suspicious": { "value": -15, "description": "Interaction with flagged addresses" }
+    },
+    "levels": {
+      "0-25": "not_trusted",
+      "26-50": "caution",
+      "51-75": "trusted",
+      "76-100": "highly_trusted"
+    }
+  },
+
+  "contracts": {
+    "celo": {
+      "chainId": 42220,
+      "trustRegistry": "[TBD]",
+      "rpc": "https://forno.celo.org"
+    },
+    "base": {
+      "chainId": 8453,
+      "trustRegistry": "[TBD]",
+      "rpc": "https://mainnet.base.org"
+    },
+    "baseSepolia": {
+      "chainId": 84532,
+      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
+      "deployTxHash": "0x283c1b38b3af00fead2c455b561274a024a23f859f91049110901067882fe025",
+      "rpc": "https://sepolia.base.org"
+    },
+    "celoSepolia": {
+      "chainId": 11142220,
+      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
+      "deployTxHash": "0x4d948c116b073f01e04f99ca7e875f203651900c483b83cdaa8584d8c69119ca",
+      "rpc": "https://celo-sepolia.g.alchemy.com/v2/[KEY]"
+    },
+    "statusSepolia": {
+      "chainId": 1660990954,
+      "trustRegistry": "[TBD]",
+      "rpc": "[TBD]"
+    }
+  },
+
+  "safetyGuardrails": [
+    "Never write a score without completing a full transaction audit",
+    "Validate agent address is non-zero and registered before scoring",
+    "Cap score at 100 enforced both off-chain and on-chain",
+    "All onchain writes require auditor wallet signature — owner cannot write scores directly",
+    "Self Protocol verification is read-only — Lookout cannot forge ZK proofs"
+  ],
+
+  "computeBudget": {
+    "maxApiCallsPerAudit": 10,
+    "maxRetries": 3,
+    "timeoutSeconds": 30,
+    "maxConcurrentAudits": 5
+  },
+
+  "links": {
+    "website": "https://lookout.watch",
+    "github": "https://github.com/sandralookout/lookout",
+    "skill": "https://lookout.watch/skill.md",
+    "api": "https://lookout.watch/api"
+  },
+
+  "hackathon": "The Synthesis 2026",
+  "createdAt": "2026-03-17T00:00:00Z",
+  "updatedAt": "2026-03-17T00:00:00Z"
+}
