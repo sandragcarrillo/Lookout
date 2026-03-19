@@ -107,13 +107,13 @@
     },
     "baseSepolia": {
       "chainId": 84532,
-      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
+      "trustRegistry": "0xbC50290e05d9F159c0CB6db1008Acc0a1228AF55",
       "deployTxHash": "0x283c1b38b3af00fead2c455b561274a024a23f859f91049110901067882fe025",
       "rpc": "https://sepolia.base.org"
     },
     "celoSepolia": {
       "chainId": 11142220,
-      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
+      "trustRegistry": "0xAc800b34E85256DD8dd503b8E8e08893C9bDe57A",
       "deployTxHash": "0x4d948c116b073f01e04f99ca7e875f203651900c483b83cdaa8584d8c69119ca",
       "rpc": "https://celo-sepolia.g.alchemy.com/v2/[KEY]"
     },

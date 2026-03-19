@@ -35,3 +35,4 @@ out/
 *.log
 
 CLAUDE.md
+.claude/
