@@ -68,8 +68,8 @@ GET https://lookout.watch/api/score/0xAgentAddress?chain=celo
 
 | Chain | Contract |
 |---|---|
-| Celo (42220) | `[TBD — pending deployment]` |
-| Base (8453) | `[TBD — pending deployment]` |
+| Celo (42220) | `0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E` |
+| Base (8453) | `0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E` |
 
 ---
 

@@ -5,11 +5,11 @@
   "tagline": "The credit score for AI agents — onchain, composable, ZK-verified.",
 
   "identity": {
-    "agentAddress": "[TBD]",
+    "agentAddress": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8",
     "erc8004Registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
-    "erc8004TokenId": "[TBD]",
+    "erc8004TokenId": "2832",
     "ensName": "[TBD]",
-    "operator": "[TBD]"
+    "operator": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8"
   },
 
   "runtime": {
@@ -97,17 +97,18 @@
   "contracts": {
     "celo": {
       "chainId": 42220,
-      "trustRegistry": "[TBD]",
+      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
       "rpc": "https://forno.celo.org"
     },
     "base": {
       "chainId": 8453,
-      "trustRegistry": "[TBD]",
+      "trustRegistry": "0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E",
       "rpc": "https://mainnet.base.org"
     },
     "baseSepolia": {
       "chainId": 84532,
       "trustRegistry": "0xbC50290e05d9F159c0CB6db1008Acc0a1228AF55",
+      "erc8004TokenId": "34693",
       "deployTxHash": "0x283c1b38b3af00fead2c455b561274a024a23f859f91049110901067882fe025",
       "rpc": "https://sepolia.base.org"
     },
@@ -148,5 +149,5 @@
 
   "hackathon": "The Synthesis 2026",
   "createdAt": "2026-03-17T00:00:00Z",
-  "updatedAt": "2026-03-17T00:00:00Z"
+  "updatedAt": "2026-03-19T00:00:00Z"
 }
