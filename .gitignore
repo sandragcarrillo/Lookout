@@ -34,5 +34,10 @@ out/
 # Misc
 *.log
 
+# Agent generated files
+recibo_*.md
+agent/node_modules/
+agent/dist/
+
 CLAUDE.md
 .claude/

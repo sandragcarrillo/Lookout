@@ -23,8 +23,10 @@ pragma solidity ^0.8.20;
  *     76-100 → Highly trusted
  *
  *   Security model:
- *     - Only the agent itself can register (msg.sender == agent)
+ *     - Anyone can register any address (credit bureau model — no opt-in required)
  *     - Scores can only be written by the designated auditor wallet
+ *     - updateScore() auto-registers an address on first audit
+ *     - Deactivated agents cannot be re-registered or re-audited (admin penalty)
  *     - isHumanBacked=true requires onchain ZK proof confirmation via Self Protocol
  *     - Score updates are rate-limited to once per MIN_AUDIT_INTERVAL
  *     - Ownership transfer is two-step (propose → accept) to prevent misaddress
@@ -205,34 +207,37 @@ contract TrustRegistry {
     // Registration
     // -------------------------------------------------------------------
 
-    /// @notice Register yourself to start building reputation.
-    /// @dev    Only the agent itself can register — msg.sender becomes the agent address.
-    ///         This prevents griefing (no third party can lock your address).
-    /// @param _erc8004Id ERC-8004 tokenId if registered there (0 if not).
-    ///                   The token must be owned by msg.sender.
-    function registerAgent(uint256 _erc8004Id) external {
-        address _agent = msg.sender;
-        if (profiles[_agent].isActive) revert AlreadyRegistered();
+    /// @notice Register any address in the registry.
+    /// @dev    Lookout is a credit bureau — no opt-in required. Anyone can register
+    ///         any address (the auditor, a relayer, the agent itself). The auditor
+    ///         also auto-registers via updateScore() on first audit.
+    ///         Deactivated agents (firstSeenAt > 0, isActive == false) cannot be
+    ///         re-registered — deactivation is a permanent admin penalty for fraud.
+    /// @param _agent     The address to register.
+    /// @param _erc8004Id ERC-8004 tokenId if the agent is registered there (0 if not).
+    ///                   If non-zero, the token must be owned by _agent.
+    function registerAgent(address _agent, uint256 _erc8004Id) external {
+        if (_agent == address(0)) revert ZeroAddress();
+        AgentProfile storage p = profiles[_agent];
+        if (p.isActive)      revert AlreadyRegistered();
+        if (p.firstSeenAt > 0) revert AlreadyRegistered(); // was deactivated
 
-        // --- Effects (state changes before external calls — CEI pattern) ---
-        profiles[_agent] = AgentProfile({
-            agentAddress:    _agent,
-            erc8004Id:       _erc8004Id,
-            score:           0,
-            breakdown:       ScoreBreakdown(0, 0, 0, 0, 0, 0, 0, 0),
-            isHumanBacked:   false,
-            isActive:        true,
-            firstSeenAt:     block.timestamp,
-            lastAuditedAt:   0,
-            auditCount:      0,
-            latestReportCID: ""
-        });
+        // --- Effects ---
+        p.agentAddress    = _agent;
+        p.erc8004Id       = _erc8004Id;
+        p.score           = 0;
+        p.breakdown       = ScoreBreakdown(0, 0, 0, 0, 0, 0, 0, 0);
+        p.isHumanBacked   = false;
+        p.isActive        = true;
+        p.firstSeenAt     = block.timestamp;
+        p.lastAuditedAt   = 0;
+        p.auditCount      = 0;
+        p.latestReportCID = "";
         agentList.push(_agent);
         emit AgentRegistered(_agent, _erc8004Id, block.timestamp);
 
         // --- Interaction (external call last — CEI pattern) ---
-        // If ERC-8004 ID provided, verify the caller owns that token.
-        // ownerOf reverts if the tokenId doesn't exist.
+        // If ERC-8004 ID provided, verify the agent owns that token.
         if (_erc8004Id > 0) {
             address tokenOwner = IERC8004Identity(ERC8004_REGISTRY).ownerOf(_erc8004Id);
             if (tokenOwner != _agent) revert NotERC8004Owner();
@@ -244,8 +249,10 @@ contract TrustRegistry {
     // -------------------------------------------------------------------
 
     /// @notice Write a new TrustScore after auditing an agent's on-chain behavior.
-    /// @dev    Rate-limited to MIN_AUDIT_INTERVAL per agent after the first audit.
-    ///         ScoreBreakdown fields are validated against protocol spec ranges.
+    /// @dev    Auto-registers the agent on first audit (credit bureau model) —
+    ///         the target never needs to self-register. Deactivated agents (fraud
+    ///         penalty) are blocked from re-registration and revert NotRegistered.
+    ///         Rate-limited to MIN_AUDIT_INTERVAL per agent after the first audit.
     function updateScore(
         address              _agent,
         uint256              _score,
@@ -253,7 +260,23 @@ contract TrustRegistry {
         string  calldata     _reportCID
     ) external onlyAuditor {
         AgentProfile storage p = profiles[_agent];
-        if (!p.isActive)  revert NotRegistered();
+
+        // Auto-register on first audit; block deactivated agents.
+        if (!p.isActive) {
+            if (p.firstSeenAt > 0) revert NotRegistered(); // was deactivated — permanent block
+            // First time auditing this address — auto-register it.
+            p.agentAddress    = _agent;
+            p.erc8004Id       = 0;
+            p.isHumanBacked   = false;
+            p.isActive        = true;
+            p.firstSeenAt     = block.timestamp;
+            p.lastAuditedAt   = 0;
+            p.auditCount      = 0;
+            p.latestReportCID = "";
+            agentList.push(_agent);
+            emit AgentRegistered(_agent, 0, block.timestamp);
+        }
+
         if (_score > 100) revert ScoreOutOfRange();
 
         // Rate-limit: skip check on first audit (lastAuditedAt == 0)

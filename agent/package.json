@@ -1,0 +1,19 @@
+{
+  "name": "lookout-agent",
+  "version": "1.0.0",
+  "description": "Lookout auditor agent — onchain reputation scoring for AI agents",
+  "type": "module",
+  "scripts": {
+    "audit": "npx tsx auditor.ts",
+    "audit:celo": "npx tsx auditor.ts --chain celo",
+    "audit:base": "npx tsx auditor.ts --chain base"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

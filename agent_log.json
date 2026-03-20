@@ -5,138 +5,2844 @@
   "erc8004TokenId": "[TBD]",
   "runs": [
     {
-      "runId": "run_001",
+      "runId": "run_1773978011505",
       "type": "audit",
-      "status": "template",
-      "note": "This entry documents the expected schema. Replace with real run data after first deployment.",
-      "startedAt": "[TBD]",
-      "completedAt": "[TBD]",
-      "durationMs": "[TBD]",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T03:40:11.505Z",
+      "completedAt": "2026-03-20T03:40:13.724Z",
+      "durationMs": 2219,
       "chain": "celo",
-
       "input": {
-        "targetAddress": "[TBD]",
-        "requestedBy": "[TBD]",
-        "trigger": "api-call"
+        "targetAddress": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8",
+        "requestedBy": "cli",
+        "trigger": "manual"
       },
-
       "decisions": [
         {
           "step": 1,
-          "decision": "Fetch transaction history",
-          "reasoning": "Need at least 1 transaction to compute any score component. Abort if address has no history.",
-          "outcome": "[TBD]"
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
         },
         {
           "step": 2,
-          "decision": "Classify transactions",
-          "reasoning": "Categorize each tx as swap, transfer, contract-call, or failed to compute successRate and counterparties.",
-          "outcome": "[TBD]"
+          "decision": "Fetch transaction list, check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Tx fetch = 1, Self = 1 (onchain), ENS = 1 (mainnet). Total = 3.",
+          "outcome": "within_budget"
         },
         {
           "step": 3,
-          "decision": "Apply scoring model",
-          "reasoning": "Calculate base score + bonuses + penalties. Clamp to [0, 100].",
-          "outcome": "[TBD]"
+          "decision": "Score computed: 15/100 (not_trusted)",
+          "reasoning": "base=15, bonuses=0, penalties=0",
+          "outcome": "score_15"
         },
         {
           "step": 4,
-          "decision": "Generate recibo",
-          "reasoning": "Create human-readable audit report and upload to IPFS for onchain reference.",
-          "outcome": "[TBD]"
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
         },
         {
           "step": 5,
-          "decision": "Write score onchain",
-          "reasoning": "Call TrustRegistry.updateScore() only after all steps above succeed. Never write partial results.",
-          "outcome": "[TBD]"
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
         }
       ],
-
       "toolCalls": [
         {
-          "tool": "blockscout_api",
-          "action": "GET /api?module=account&action=txlist&address={target}",
-          "startedAt": "[TBD]",
-          "completedAt": "[TBD]",
-          "durationMs": "[TBD]",
-          "success": "[TBD]",
-          "txsFetched": "[TBD]",
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8)",
+          "startedAt": "2026-03-20T03:40:11.507Z",
+          "completedAt": "2026-03-20T03:40:12.096Z",
+          "durationMs": 589,
+          "success": true,
+          "result": false,
           "retries": 0,
           "error": null
         },
         {
-          "tool": "erc8004_identity_read",
-          "action": "ownerOf({erc8004TokenId})",
-          "startedAt": "[TBD]",
-          "completedAt": "[TBD]",
-          "durationMs": "[TBD]",
-          "success": "[TBD]",
-          "result": "[TBD]",
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8",
+          "startedAt": "2026-03-20T03:40:12.097Z",
+          "completedAt": "2026-03-20T03:40:13.020Z",
+          "durationMs": 923,
+          "success": true,
+          "txsFetched": 3,
           "retries": 0,
           "error": null
         },
         {
           "tool": "self_protocol_verify",
-          "action": "checkVerification({targetAddress})",
-          "startedAt": "[TBD]",
-          "completedAt": "[TBD]",
-          "durationMs": "[TBD]",
-          "success": "[TBD]",
-          "isHumanBacked": "[TBD]",
+          "action": "isVerifiedAgent(0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8)",
+          "startedAt": "2026-03-20T03:40:13.020Z",
+          "completedAt": "2026-03-20T03:40:13.342Z",
+          "durationMs": 322,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8)",
+          "startedAt": "2026-03-20T03:40:13.342Z",
+          "completedAt": "2026-03-20T03:40:13.722Z",
+          "durationMs": 380,
+          "success": true,
+          "result": null,
           "retries": 0,
           "error": null
         },
         {
           "tool": "ipfs_upload",
-          "action": "uploadRecibo({reportJson})",
-          "startedAt": "[TBD]",
-          "completedAt": "[TBD]",
-          "durationMs": "[TBD]",
-          "success": "[TBD]",
-          "cid": "[TBD]",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T03:40:13.724Z",
+          "completedAt": "2026-03-20T03:40:13.724Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8",
+        "score": 15,
+        "level": "not_trusted",
+        "breakdown": {
+          "txCount": 0,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 0,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 3,
+        "successfulTxs": 3,
+        "failedTxs": 0,
+        "uniqueCounterparties": 2,
+        "accountAgeDays": 0,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0xCd08B2_celo_1773978013723.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 1,
+        "totalRetries": 0,
+        "totalDurationMs": 2219,
+        "budgetUsed": "1/10"
+      }
+    },
+    {
+      "runId": "run_1773979107392",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T03:58:27.391Z",
+      "completedAt": "2026-03-20T03:58:36.545Z",
+      "durationMs": 9153,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch transaction list, check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Tx fetch = 1, Self = 1 (onchain), ENS = 1 (mainnet). Total = 3.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T03:58:27.393Z",
+          "completedAt": "2026-03-20T03:58:27.860Z",
+          "durationMs": 467,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+          "startedAt": "2026-03-20T03:58:27.860Z",
+          "completedAt": "2026-03-20T03:58:35.634Z",
+          "durationMs": 7774,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T03:58:35.635Z",
+          "completedAt": "2026-03-20T03:58:36.142Z",
+          "durationMs": 507,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T03:58:36.142Z",
+          "completedAt": "2026-03-20T03:58:36.542Z",
+          "durationMs": 400,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T03:58:36.545Z",
+          "completedAt": "2026-03-20T03:58:36.545Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 0,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0xc15366_celo_1773979116544.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 4,
+        "totalRetries": 0,
+        "totalDurationMs": 9153,
+        "budgetUsed": "4/10"
+      }
+    },
+    {
+      "runId": "run_1773979133497",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T03:58:53.497Z",
+      "completedAt": "2026-03-20T03:59:01.343Z",
+      "durationMs": 7846,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch transaction list, check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Tx fetch = 1, Self = 1 (onchain), ENS = 1 (mainnet). Total = 3.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T03:58:53.498Z",
+          "completedAt": "2026-03-20T03:58:54.591Z",
+          "durationMs": 1093,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x02e97e243204780842d5cA34dFEF465A959b18b3",
+          "startedAt": "2026-03-20T03:58:54.591Z",
+          "completedAt": "2026-03-20T03:59:00.559Z",
+          "durationMs": 5968,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T03:59:00.559Z",
+          "completedAt": "2026-03-20T03:59:00.956Z",
+          "durationMs": 397,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T03:59:00.956Z",
+          "completedAt": "2026-03-20T03:59:01.342Z",
+          "durationMs": 386,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T03:59:01.343Z",
+          "completedAt": "2026-03-20T03:59:01.343Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 186,
+        "accountAgeDays": 1,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x02e97e_celo_1773979141342.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 4,
+        "totalRetries": 0,
+        "totalDurationMs": 7846,
+        "budgetUsed": "4/10"
+      }
+    },
+    {
+      "runId": "run_1773979150029",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T03:59:10.028Z",
+      "completedAt": "2026-03-20T03:59:19.440Z",
+      "durationMs": 9411,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch transaction list, check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Tx fetch = 1, Self = 1 (onchain), ENS = 1 (mainnet). Total = 3.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 33/100 (caution)",
+          "reasoning": "base=33, bonuses=0, penalties=0",
+          "outcome": "score_33"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T03:59:10.030Z",
+          "completedAt": "2026-03-20T03:59:10.279Z",
+          "durationMs": 249,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+          "startedAt": "2026-03-20T03:59:10.279Z",
+          "completedAt": "2026-03-20T03:59:18.974Z",
+          "durationMs": 8695,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T03:59:18.974Z",
+          "completedAt": "2026-03-20T03:59:18.974Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T03:59:18.974Z",
+          "completedAt": "2026-03-20T03:59:19.439Z",
+          "durationMs": 465,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T03:59:19.440Z",
+          "completedAt": "2026-03-20T03:59:19.440Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "score": 33,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 3,
+        "accountAgeDays": 5,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x460297_base_1773979159440.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 4,
+        "totalRetries": 0,
+        "totalDurationMs": 9411,
+        "budgetUsed": "4/10"
+      }
+    },
+    {
+      "runId": "run_1773979171603",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T03:59:31.602Z",
+      "completedAt": "2026-03-20T03:59:39.225Z",
+      "durationMs": 7622,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch transaction list, check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Tx fetch = 1, Self = 1 (onchain), ENS = 1 (mainnet). Total = 3.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 36/100 (caution)",
+          "reasoning": "base=36, bonuses=0, penalties=0",
+          "outcome": "score_36"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T03:59:31.604Z",
+          "completedAt": "2026-03-20T03:59:31.864Z",
+          "durationMs": 260,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+          "startedAt": "2026-03-20T03:59:31.864Z",
+          "completedAt": "2026-03-20T03:59:38.834Z",
+          "durationMs": 6970,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T03:59:38.834Z",
+          "completedAt": "2026-03-20T03:59:38.834Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T03:59:38.834Z",
+          "completedAt": "2026-03-20T03:59:39.220Z",
+          "durationMs": 386,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T03:59:39.225Z",
+          "completedAt": "2026-03-20T03:59:39.225Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "score": 36,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 3,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 6,
+        "accountAgeDays": 13,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x3C0820_base_1773979179224.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 4,
+        "totalRetries": 0,
+        "totalDurationMs": 7622,
+        "budgetUsed": "4/10"
+      }
+    },
+    {
+      "runId": "run_1773979550070",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:05:50.070Z",
+      "completedAt": "2026-03-20T04:05:59.576Z",
+      "durationMs": 9506,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:05:50.071Z",
+          "completedAt": "2026-03-20T04:05:50.703Z",
+          "durationMs": 632,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03 (recent, desc)",
+          "startedAt": "2026-03-20T04:05:50.703Z",
+          "completedAt": "2026-03-20T04:05:58.561Z",
+          "durationMs": 7858,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:05:58.561Z",
+          "completedAt": "2026-03-20T04:05:58.774Z",
+          "durationMs": 213,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:05:58.774Z",
+          "completedAt": "2026-03-20T04:05:59.161Z",
+          "durationMs": 387,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:05:59.161Z",
+          "completedAt": "2026-03-20T04:05:59.573Z",
+          "durationMs": 412,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:05:59.576Z",
+          "completedAt": "2026-03-20T04:05:59.576Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 0,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0xc15366_celo_1773979559575.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 9506,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979560296",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:06:00.295Z",
+      "completedAt": "2026-03-20T04:06:08.861Z",
+      "durationMs": 8565,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:06:00.297Z",
+          "completedAt": "2026-03-20T04:06:00.806Z",
+          "durationMs": 509,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x02e97e243204780842d5cA34dFEF465A959b18b3 (recent, desc)",
+          "startedAt": "2026-03-20T04:06:00.806Z",
+          "completedAt": "2026-03-20T04:06:07.725Z",
+          "durationMs": 6919,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x02e97e243204780842d5cA34dFEF465A959b18b3&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:06:07.725Z",
+          "completedAt": "2026-03-20T04:06:07.908Z",
+          "durationMs": 183,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:06:07.908Z",
+          "completedAt": "2026-03-20T04:06:08.446Z",
+          "durationMs": 538,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:06:08.446Z",
+          "completedAt": "2026-03-20T04:06:08.860Z",
+          "durationMs": 414,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:06:08.861Z",
+          "completedAt": "2026-03-20T04:06:08.861Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 186,
+        "accountAgeDays": 1,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x02e97e_celo_1773979568860.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 8565,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979569575",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:06:09.574Z",
+      "completedAt": "2026-03-20T04:06:20.121Z",
+      "durationMs": 10546,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 33/100 (caution)",
+          "reasoning": "base=33, bonuses=0, penalties=0",
+          "outcome": "score_33"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:06:09.576Z",
+          "completedAt": "2026-03-20T04:06:09.838Z",
+          "durationMs": 262,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101 (recent, desc)",
+          "startedAt": "2026-03-20T04:06:09.838Z",
+          "completedAt": "2026-03-20T04:06:19.423Z",
+          "durationMs": 9585,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:06:19.423Z",
+          "completedAt": "2026-03-20T04:06:19.611Z",
+          "durationMs": 188,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:06:19.611Z",
+          "completedAt": "2026-03-20T04:06:19.611Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:06:19.611Z",
+          "completedAt": "2026-03-20T04:06:20.120Z",
+          "durationMs": 509,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:06:20.121Z",
+          "completedAt": "2026-03-20T04:06:20.121Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "score": 33,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 3,
+        "accountAgeDays": 5,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x460297_base_1773979580121.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 10546,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979580878",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:06:20.878Z",
+      "completedAt": "2026-03-20T04:06:32.519Z",
+      "durationMs": 11641,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 36/100 (caution)",
+          "reasoning": "base=36, bonuses=0, penalties=0",
+          "outcome": "score_36"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:06:20.879Z",
+          "completedAt": "2026-03-20T04:06:21.163Z",
+          "durationMs": 284,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8 (recent, desc)",
+          "startedAt": "2026-03-20T04:06:21.164Z",
+          "completedAt": "2026-03-20T04:06:31.851Z",
+          "durationMs": 10687,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:06:31.851Z",
+          "completedAt": "2026-03-20T04:06:32.046Z",
+          "durationMs": 195,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:06:32.046Z",
+          "completedAt": "2026-03-20T04:06:32.046Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:06:32.046Z",
+          "completedAt": "2026-03-20T04:06:32.514Z",
+          "durationMs": 468,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:06:32.519Z",
+          "completedAt": "2026-03-20T04:06:32.519Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "score": 36,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 3,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 6,
+        "accountAgeDays": 13,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x3C0820_base_1773979592518.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 11641,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979692363",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:08:12.362Z",
+      "completedAt": "2026-03-20T04:08:21.258Z",
+      "durationMs": 8895,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:08:12.364Z",
+          "completedAt": "2026-03-20T04:08:12.846Z",
+          "durationMs": 482,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03 (recent, desc)",
+          "startedAt": "2026-03-20T04:08:12.846Z",
+          "completedAt": "2026-03-20T04:08:19.946Z",
+          "durationMs": 7100,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:08:19.946Z",
+          "completedAt": "2026-03-20T04:08:20.190Z",
+          "durationMs": 244,
+          "success": true,
+          "firstTxAt": 1773680265,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:08:20.190Z",
+          "completedAt": "2026-03-20T04:08:20.863Z",
+          "durationMs": 673,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:08:20.863Z",
+          "completedAt": "2026-03-20T04:08:21.257Z",
+          "durationMs": 394,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:08:21.258Z",
+          "completedAt": "2026-03-20T04:08:21.258Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 3,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0xc15366_celo_1773979701258.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 8895,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979702022",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:08:22.021Z",
+      "completedAt": "2026-03-20T04:08:29.009Z",
+      "durationMs": 6987,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:08:22.023Z",
+          "completedAt": "2026-03-20T04:08:22.437Z",
+          "durationMs": 414,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x02e97e243204780842d5cA34dFEF465A959b18b3 (recent, desc)",
+          "startedAt": "2026-03-20T04:08:22.437Z",
+          "completedAt": "2026-03-20T04:08:27.967Z",
+          "durationMs": 5530,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x02e97e243204780842d5cA34dFEF465A959b18b3&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:08:27.967Z",
+          "completedAt": "2026-03-20T04:08:28.227Z",
+          "durationMs": 260,
+          "success": true,
+          "firstTxAt": 1773604674,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:08:28.227Z",
+          "completedAt": "2026-03-20T04:08:28.612Z",
+          "durationMs": 385,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x02e97e243204780842d5cA34dFEF465A959b18b3)",
+          "startedAt": "2026-03-20T04:08:28.612Z",
+          "completedAt": "2026-03-20T04:08:29.008Z",
+          "durationMs": 396,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:08:29.009Z",
+          "completedAt": "2026-03-20T04:08:29.009Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x02e97e243204780842d5cA34dFEF465A959b18b3",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 186,
+        "accountAgeDays": 4,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x02e97e_celo_1773979709009.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 6987,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979709718",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:08:29.718Z",
+      "completedAt": "2026-03-20T04:08:41.743Z",
+      "durationMs": 12025,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 39/100 (caution)",
+          "reasoning": "base=39, bonuses=0, penalties=0",
+          "outcome": "score_39"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:08:29.719Z",
+          "completedAt": "2026-03-20T04:08:29.957Z",
+          "durationMs": 238,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101 (recent, desc)",
+          "startedAt": "2026-03-20T04:08:29.957Z",
+          "completedAt": "2026-03-20T04:08:39.416Z",
+          "durationMs": 9459,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:08:39.416Z",
+          "completedAt": "2026-03-20T04:08:39.655Z",
+          "durationMs": 239,
+          "success": true,
+          "firstTxAt": 1770072587,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:08:39.655Z",
+          "completedAt": "2026-03-20T04:08:39.655Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:08:39.655Z",
+          "completedAt": "2026-03-20T04:08:41.741Z",
+          "durationMs": 2086,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:08:41.743Z",
+          "completedAt": "2026-03-20T04:08:41.743Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "score": 39,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 6,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 3,
+        "accountAgeDays": 45,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x460297_base_1773979721743.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 12025,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773979722545",
+      "type": "audit",
+      "status": "completed_unregistered",
+      "startedAt": "2026-03-20T04:08:42.545Z",
+      "completedAt": "2026-03-20T04:08:51.849Z",
+      "durationMs": 9304,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not registered — will compute score but skip onchain write",
+          "reasoning": "registerAgent() requires msg.sender == agent; auditor cannot register on their behalf",
+          "outcome": "proceed_without_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 36/100 (caution)",
+          "reasoning": "base=36, bonuses=0, penalties=0",
+          "outcome": "score_36"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — agent not registered",
+          "reasoning": "TrustRegistry.updateScore() would revert with NotRegistered()",
+          "outcome": "skipped_unregistered"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:08:42.546Z",
+          "completedAt": "2026-03-20T04:08:42.780Z",
+          "durationMs": 234,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8 (recent, desc)",
+          "startedAt": "2026-03-20T04:08:42.780Z",
+          "completedAt": "2026-03-20T04:08:51.241Z",
+          "durationMs": 8461,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:08:51.241Z",
+          "completedAt": "2026-03-20T04:08:51.459Z",
+          "durationMs": 218,
+          "success": true,
+          "firstTxAt": 1772087179,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:08:51.459Z",
+          "completedAt": "2026-03-20T04:08:51.459Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8)",
+          "startedAt": "2026-03-20T04:08:51.459Z",
+          "completedAt": "2026-03-20T04:08:51.847Z",
+          "durationMs": 388,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:08:51.849Z",
+          "completedAt": "2026-03-20T04:08:51.849Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0x3C0820e2dabD5FEAe1fd03B78079DEe15c7F83D8",
+        "score": 36,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 3,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 6,
+        "accountAgeDays": 22,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reciboPath": "/Users/sc/Dev/Lookout/recibo_0x3C0820_base_1773979731849.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 9304,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773981081693",
+      "type": "audit",
+      "status": "completed_no_write",
+      "startedAt": "2026-03-20T04:31:21.692Z",
+      "completedAt": "2026-03-20T04:31:24.060Z",
+      "durationMs": 2367,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 0/100 (not_trusted)",
+          "reasoning": "base=0, bonuses=0, penalties=-5",
+          "outcome": "score_0"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — no auditor private key",
+          "reasoning": "AUDITOR_PRIVATE_KEY env var not set",
+          "outcome": "skipped_no_key"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001)",
+          "startedAt": "2026-03-20T04:31:21.694Z",
+          "completedAt": "2026-03-20T04:31:22.198Z",
+          "durationMs": 504,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001 (recent, desc)",
+          "startedAt": "2026-03-20T04:31:22.198Z",
+          "completedAt": "2026-03-20T04:31:22.969Z",
+          "durationMs": 771,
+          "success": true,
+          "txsFetched": 0,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:31:22.970Z",
+          "completedAt": "2026-03-20T04:31:23.323Z",
+          "durationMs": 353,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001)",
+          "startedAt": "2026-03-20T04:31:23.323Z",
+          "completedAt": "2026-03-20T04:31:23.646Z",
+          "durationMs": 323,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001)",
+          "startedAt": "2026-03-20T04:31:23.646Z",
+          "completedAt": "2026-03-20T04:31:24.059Z",
+          "durationMs": 413,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:31:24.060Z",
+          "completedAt": "2026-03-20T04:31:24.060Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xC15366c2a0c2a5d7E21aA7b651fB5d1c0c90B001",
+        "score": 0,
+        "level": "not_trusted",
+        "breakdown": {
+          "txCount": 0,
+          "successRate": 0,
+          "accountAge": 0,
+          "counterparties": 0,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": -5
+        },
+        "totalTxs": 0,
+        "successfulTxs": 0,
+        "failedTxs": 0,
+        "uniqueCounterparties": 0,
+        "accountAgeDays": 0,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0xC15366_celo_2026-03-20.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 2,
+        "totalRetries": 0,
+        "totalDurationMs": 2367,
+        "budgetUsed": "2/10"
+      }
+    },
+    {
+      "runId": "run_1773981184289",
+      "type": "audit",
+      "status": "completed_no_write",
+      "startedAt": "2026-03-20T04:33:04.288Z",
+      "completedAt": "2026-03-20T04:33:13.750Z",
+      "durationMs": 9461,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Skipped onchain write — no auditor private key",
+          "reasoning": "AUDITOR_PRIVATE_KEY env var not set",
+          "outcome": "skipped_no_key"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:04.290Z",
+          "completedAt": "2026-03-20T04:33:04.729Z",
+          "durationMs": 439,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03 (recent, desc)",
+          "startedAt": "2026-03-20T04:33:04.730Z",
+          "completedAt": "2026-03-20T04:33:12.755Z",
+          "durationMs": 8025,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:33:12.755Z",
+          "completedAt": "2026-03-20T04:33:12.971Z",
+          "durationMs": 216,
+          "success": true,
+          "firstTxAt": 1773680265,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:12.971Z",
+          "completedAt": "2026-03-20T04:33:13.361Z",
+          "durationMs": 390,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:13.361Z",
+          "completedAt": "2026-03-20T04:33:13.749Z",
+          "durationMs": 388,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:33:13.750Z",
+          "completedAt": "2026-03-20T04:33:13.750Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 3,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0xc15366_celo_2026-03-20.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 9461,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773981210820",
+      "type": "audit",
+      "status": "completed_no_write",
+      "startedAt": "2026-03-20T04:33:30.820Z",
+      "completedAt": "2026-03-20T04:33:40.305Z",
+      "durationMs": 9485,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Onchain write failed — score not persisted",
+          "reasoning": "Called TrustRegistry.updateScore() — auto-registers agent on first audit if not already registered",
+          "outcome": "write_failed"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:30.821Z",
+          "completedAt": "2026-03-20T04:33:31.285Z",
+          "durationMs": 464,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03 (recent, desc)",
+          "startedAt": "2026-03-20T04:33:31.285Z",
+          "completedAt": "2026-03-20T04:33:37.541Z",
+          "durationMs": 6256,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:33:37.541Z",
+          "completedAt": "2026-03-20T04:33:37.744Z",
+          "durationMs": 203,
+          "success": true,
+          "firstTxAt": 1773680265,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:37.744Z",
+          "completedAt": "2026-03-20T04:33:38.190Z",
+          "durationMs": 446,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:33:38.190Z",
+          "completedAt": "2026-03-20T04:33:38.577Z",
+          "durationMs": 387,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:33:38.580Z",
+          "completedAt": "2026-03-20T04:33:38.580Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        },
+        {
+          "tool": "trust_registry_write",
+          "action": "updateScore(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03, 45, breakdown, \"\")",
+          "startedAt": "2026-03-20T04:33:38.580Z",
+          "completedAt": "2026-03-20T04:33:40.305Z",
+          "durationMs": 1725,
+          "success": false,
+          "txHash": null,
+          "retries": 0,
+          "error": "write failed"
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 3,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0xc15366_celo_2026-03-20.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 9485,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773981508943",
+      "type": "audit",
+      "status": "completed",
+      "startedAt": "2026-03-20T04:38:28.942Z",
+      "completedAt": "2026-03-20T04:38:40.102Z",
+      "durationMs": 11159,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 39/100 (caution)",
+          "reasoning": "base=39, bonuses=0, penalties=0",
+          "outcome": "score_39"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Score written onchain: 0xe2c993208166f66f641df7894757c3cd9e29fb898f5a4217dd65fb102e11a568",
+          "reasoning": "Called TrustRegistry.updateScore() — auto-registers agent on first audit if not already registered",
+          "outcome": "written"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:38:28.944Z",
+          "completedAt": "2026-03-20T04:38:29.200Z",
+          "durationMs": 256,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101 (recent, desc)",
+          "startedAt": "2026-03-20T04:38:29.200Z",
+          "completedAt": "2026-03-20T04:38:36.835Z",
+          "durationMs": 7635,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:38:36.835Z",
+          "completedAt": "2026-03-20T04:38:37.056Z",
+          "durationMs": 221,
+          "success": true,
+          "firstTxAt": 1770072587,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:38:37.056Z",
+          "completedAt": "2026-03-20T04:38:37.056Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:38:37.056Z",
+          "completedAt": "2026-03-20T04:38:37.489Z",
+          "durationMs": 433,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:38:37.491Z",
+          "completedAt": "2026-03-20T04:38:37.491Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        },
+        {
+          "tool": "trust_registry_write",
+          "action": "updateScore(0x4602973Aa67b70BfD08D299f2AafC084179A8101, 39, breakdown, \"\")",
+          "startedAt": "2026-03-20T04:38:37.491Z",
+          "completedAt": "2026-03-20T04:38:40.102Z",
+          "durationMs": 2611,
+          "success": true,
+          "txHash": "0xe2c993208166f66f641df7894757c3cd9e29fb898f5a4217dd65fb102e11a568",
+          "retries": 0,
+          "error": null
+        }
+      ],
+      "output": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "score": 39,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 6,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 3,
+        "accountAgeDays": 45,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": "0xe2c993208166f66f641df7894757c3cd9e29fb898f5a4217dd65fb102e11a568",
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0x460297_base_2026-03-20.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 11159,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773981618722",
+      "type": "audit",
+      "status": "completed",
+      "startedAt": "2026-03-20T04:40:18.720Z",
+      "completedAt": "2026-03-20T04:40:30.202Z",
+      "durationMs": 11480,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 45/100 (caution)",
+          "reasoning": "base=45, bonuses=0, penalties=0",
+          "outcome": "score_45"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "IPFS upload skipped — recibo saved locally",
+          "reasoning": "Pinata/NFT.Storage credentials not configured. Score will be written with empty CID.",
+          "outcome": "recibo_local"
+        },
+        {
+          "step": 6,
+          "decision": "Score written onchain: 0x1c2a1b96aa49406838c59ea3b57d319b8ade2c0719b55b5b26871fa21e53eaa3",
+          "reasoning": "Called TrustRegistry.updateScore() — auto-registers agent on first audit if not already registered",
+          "outcome": "written"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:40:18.723Z",
+          "completedAt": "2026-03-20T04:40:19.260Z",
+          "durationMs": 537,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03 (recent, desc)",
+          "startedAt": "2026-03-20T04:40:19.260Z",
+          "completedAt": "2026-03-20T04:40:27.874Z",
+          "durationMs": 8614,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xc15366B9C611D23Dd1433C5F6782b2aB64457D03&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:40:27.874Z",
+          "completedAt": "2026-03-20T04:40:28.096Z",
+          "durationMs": 222,
+          "success": true,
+          "firstTxAt": 1773680265,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:40:28.096Z",
+          "completedAt": "2026-03-20T04:40:28.484Z",
+          "durationMs": 388,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03)",
+          "startedAt": "2026-03-20T04:40:28.484Z",
+          "completedAt": "2026-03-20T04:40:29.352Z",
+          "durationMs": 868,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ipfs_upload",
+          "action": "uploadRecibo",
+          "startedAt": "2026-03-20T04:40:29.357Z",
+          "completedAt": "2026-03-20T04:40:29.357Z",
+          "durationMs": 0,
+          "success": false,
+          "cid": null,
+          "retries": 0,
+          "error": "IPFS upload not yet configured — recibo saved locally"
+        },
+        {
+          "tool": "trust_registry_write",
+          "action": "updateScore(0xc15366B9C611D23Dd1433C5F6782b2aB64457D03, 45, breakdown, \"\")",
+          "startedAt": "2026-03-20T04:40:29.357Z",
+          "completedAt": "2026-03-20T04:40:30.202Z",
+          "durationMs": 845,
+          "success": true,
+          "txHash": "0x1c2a1b96aa49406838c59ea3b57d319b8ade2c0719b55b5b26871fa21e53eaa3",
+          "retries": 0,
+          "error": null
+        }
+      ],
+      "output": {
+        "targetAddress": "0xc15366B9C611D23Dd1433C5F6782b2aB64457D03",
+        "score": 45,
+        "level": "caution",
+        "breakdown": {
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 0,
+          "counterparties": 15,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
+        },
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 51,
+        "accountAgeDays": 3,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": "0x1c2a1b96aa49406838c59ea3b57d319b8ade2c0719b55b5b26871fa21e53eaa3",
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0xc15366_celo_2026-03-20.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 5,
+        "totalRetries": 0,
+        "totalDurationMs": 11480,
+        "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1773981803328",
+      "type": "audit",
+      "status": "completed_no_write",
+      "startedAt": "2026-03-20T04:43:23.328Z",
+      "completedAt": "2026-03-20T04:43:34.339Z",
+      "durationMs": 11011,
+      "chain": "base",
+      "input": {
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent is pre-registered in TrustRegistry",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 39/100 (caution)",
+          "reasoning": "base=39, bonuses=0, penalties=0",
+          "outcome": "score_39"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "Onchain write failed — score not persisted",
+          "reasoning": "Called TrustRegistry.updateScore() — auto-registers agent on first audit if not already registered",
+          "outcome": "write_failed"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:43:23.329Z",
+          "completedAt": "2026-03-20T04:43:23.564Z",
+          "durationMs": 235,
+          "success": true,
+          "result": true,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101 (recent, desc)",
+          "startedAt": "2026-03-20T04:43:23.564Z",
+          "completedAt": "2026-03-20T04:43:30.883Z",
+          "durationMs": 7319,
+          "success": true,
+          "txsFetched": 200,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0x4602973Aa67b70BfD08D299f2AafC084179A8101&sort=asc (oldest tx)",
+          "startedAt": "2026-03-20T04:43:30.883Z",
+          "completedAt": "2026-03-20T04:43:31.421Z",
+          "durationMs": 538,
+          "success": true,
+          "firstTxAt": 1770072587,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:43:31.421Z",
+          "completedAt": "2026-03-20T04:43:31.421Z",
+          "durationMs": 0,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0x4602973Aa67b70BfD08D299f2AafC084179A8101)",
+          "startedAt": "2026-03-20T04:43:31.421Z",
+          "completedAt": "2026-03-20T04:43:31.814Z",
+          "durationMs": 393,
+          "success": true,
+          "result": null,
           "retries": 0,
           "error": null
         },
         {
           "tool": "trust_registry_write",
-          "action": "updateScore(address,uint256,ScoreBreakdown,string)",
-          "startedAt": "[TBD]",
-          "completedAt": "[TBD]",
-          "durationMs": "[TBD]",
-          "success": "[TBD]",
-          "txHash": "[TBD]",
-          "blockNumber": "[TBD]",
-          "gasUsed": "[TBD]",
+          "action": "updateScore(0x4602973Aa67b70BfD08D299f2AafC084179A8101, 39, breakdown, \"\")",
+          "startedAt": "2026-03-20T04:43:31.816Z",
+          "completedAt": "2026-03-20T04:43:34.337Z",
+          "durationMs": 2521,
+          "success": false,
+          "txHash": null,
           "retries": 0,
-          "error": null
+          "error": "write failed"
         }
       ],
-
       "output": {
-        "targetAddress": "[TBD]",
-        "score": "[TBD]",
-        "level": "[TBD]",
+        "targetAddress": "0x4602973Aa67b70BfD08D299f2AafC084179A8101",
+        "score": 39,
+        "level": "caution",
         "breakdown": {
-          "txCount": "[TBD]",
-          "successRate": "[TBD]",
-          "accountAge": "[TBD]",
-          "counterparties": "[TBD]",
-          "selfBonus": "[TBD]",
-          "ensBonus": "[TBD]",
-          "consistencyBonus": "[TBD]",
-          "penalties": "[TBD]"
+          "txCount": 15,
+          "successRate": 15,
+          "accountAge": 6,
+          "counterparties": 3,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": 0
         },
-        "isHumanBacked": "[TBD]",
-        "reportCID": "[TBD]",
-        "txHash": "[TBD]"
+        "totalTxs": 200,
+        "successfulTxs": 200,
+        "failedTxs": 0,
+        "uniqueCounterparties": 3,
+        "accountAgeDays": 45,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "",
+        "txHash": null,
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0x460297_base_2026-03-20.md"
       },
-
       "computeMetrics": {
-        "totalApiCalls": "[TBD]",
+        "totalApiCalls": 5,
         "totalRetries": 0,
-        "totalDurationMs": "[TBD]",
-        "estimatedCostUsd": "[TBD]"
+        "totalDurationMs": 11011,
+        "budgetUsed": "5/10"
       }
     }
   ]

@@ -44,8 +44,8 @@ Response:
 ```
 TrustRegistry on Celo Sepolia (testnet, 11142220): 0xAc800b34E85256DD8dd503b8E8e08893C9bDe57A
 TrustRegistry on Base Sepolia  (testnet, 84532):   0xbC50290e05d9F159c0CB6db1008Acc0a1228AF55
-TrustRegistry on Celo (42220):  0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E
-TrustRegistry on Base (8453):   0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E
+TrustRegistry on Celo (42220):  0xCe74337add024796C9061D88C0d9fa4836d02FE7
+TrustRegistry on Base (8453):   0xCe74337add024796C9061D88C0d9fa4836d02FE7
 ERC-8004 IdentityRegistry:      0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
 ```
 

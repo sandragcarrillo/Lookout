@@ -68,8 +68,8 @@ GET https://lookout.watch/api/score/0xAgentAddress?chain=celo
 
 | Chain | Contract |
 |---|---|
-| Celo (42220) | `0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E` |
-| Base (8453) | `0x6D4e004F73344F0e206bdD7b97D8a09b32129C6E` |
+| Celo (42220) | `0xCe74337add024796C9061D88C0d9fa4836d02FE7` |
+| Base (8453) | `0xCe74337add024796C9061D88C0d9fa4836d02FE7` |
 
 ---
 

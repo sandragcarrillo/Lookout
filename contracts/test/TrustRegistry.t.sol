@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/TrustRegistry.sol";
@@ -69,8 +69,7 @@ contract TrustRegistryTest is Test {
 
     // Helpers
     function _register(address agent) internal {
-        vm.prank(agent);
-        registry.registerAgent(0);
+        registry.registerAgent(agent, 0);
     }
 
     function _emptyBreakdown() internal pure returns (TrustRegistry.ScoreBreakdown memory) {
@@ -111,7 +110,7 @@ contract TrustRegistryTest is Test {
     }
 
     // -----------------------------------------------------------------------
-    // Registration — only msg.sender can register
+    // Registration — anyone can register any address (credit bureau model)
     // -----------------------------------------------------------------------
 
     function test_registerAgent_basic() public {
@@ -123,15 +122,13 @@ contract TrustRegistryTest is Test {
     function test_registerAgent_emitsEvent() public {
         vm.expectEmit(true, false, false, true);
         emit AgentRegistered(agent1, 0, block.timestamp);
-        vm.prank(agent1);
-        registry.registerAgent(0);
+        registry.registerAgent(agent1, 0);
     }
 
     function test_registerAgent_revertsIfAlreadyRegistered() public {
         _register(agent1);
         vm.expectRevert(TrustRegistry.AlreadyRegistered.selector);
-        vm.prank(agent1);
-        registry.registerAgent(0);
+        registry.registerAgent(agent1, 0);
     }
 
     function test_registerAgent_multipleAgents() public {
@@ -140,30 +137,31 @@ contract TrustRegistryTest is Test {
         assertEq(registry.totalAgents(), 2);
     }
 
-    // H-2 fix: third party cannot register on behalf of another address
-    function test_registerAgent_onlyCallerCanRegister() public {
-        // nobody cannot register agent1 — they can only register themselves
+    function test_registerAgent_anyoneCanRegisterAnyAddress() public {
+        // nobody can register agent1 on their behalf — credit bureau model
         vm.prank(nobody);
-        registry.registerAgent(0); // registers nobody, not agent1
-        assertTrue(registry.isRegistered(nobody));
-        assertFalse(registry.isRegistered(agent1));
+        registry.registerAgent(agent1, 0);
+        assertTrue(registry.isRegistered(agent1));
+        assertFalse(registry.isRegistered(nobody));
     }
 
-    // H-3 fix: ERC-8004 token must be owned by the caller (agent)
+    function test_registerAgent_revertsOnZeroAddress() public {
+        vm.expectRevert(TrustRegistry.ZeroAddress.selector);
+        registry.registerAgent(address(0), 0);
+    }
+
+    // ERC-8004 token must be owned by _agent, not caller
     function test_registerAgent_withValidERC8004() public {
         uint256 tokenId = 42;
         erc8004.setOwner(tokenId, agent1);
 
-        // Override the constant via vm.mockCall
-        bytes memory callData = abi.encodeWithSignature("ownerOf(uint256)", tokenId);
         vm.mockCall(
             registry.ERC8004_REGISTRY(),
-            callData,
+            abi.encodeWithSignature("ownerOf(uint256)", tokenId),
             abi.encode(agent1)
         );
 
-        vm.prank(agent1);
-        registry.registerAgent(tokenId);
+        registry.registerAgent(agent1, tokenId);
         assertTrue(registry.isRegistered(agent1));
     }
 
@@ -178,8 +176,7 @@ contract TrustRegistryTest is Test {
         );
 
         vm.expectRevert(TrustRegistry.NotERC8004Owner.selector);
-        vm.prank(agent1);
-        registry.registerAgent(tokenId);
+        registry.registerAgent(agent1, tokenId);
     }
 
     // -----------------------------------------------------------------------
@@ -245,9 +242,25 @@ contract TrustRegistryTest is Test {
         registry.updateScore(agent1, 50, b, "");
     }
 
-    function test_updateScore_revertsIfNotRegistered() public {
-        TrustRegistry.ScoreBreakdown memory b = _emptyBreakdown();
+    function test_updateScore_autoRegistersOnFirstAudit() public {
+        // Agent never registered — auditor scores it directly (credit bureau model)
+        assertFalse(registry.isRegistered(agent1));
 
+        TrustRegistry.ScoreBreakdown memory b = _emptyBreakdown();
+        vm.prank(auditor);
+        registry.updateScore(agent1, 42, b, "QmTest");
+
+        assertTrue(registry.isRegistered(agent1));
+        assertEq(registry.getScore(agent1), 42);
+        assertEq(registry.totalAgents(), 1);
+    }
+
+    function test_updateScore_revertsIfDeactivated() public {
+        // Deactivated agents (admin penalty) cannot be re-audited
+        _register(agent1);
+        registry.deactivateAgent(agent1);
+
+        TrustRegistry.ScoreBreakdown memory b = _emptyBreakdown();
         vm.prank(auditor);
         vm.expectRevert(TrustRegistry.NotRegistered.selector);
         registry.updateScore(agent1, 50, b, "");
@@ -421,8 +434,7 @@ contract TrustRegistryTest is Test {
     function test_setHumanVerified_skipsCheckIfNoSelfRegistry() public {
         // Deploy with no Self registry
         TrustRegistry r = new TrustRegistry(auditor, address(0));
-        vm.prank(agent1);
-        r.registerAgent(0);
+        r.registerAgent(agent1, 0);
 
         // Should succeed without Self Protocol check
         vm.prank(auditor);
