@@ -15,7 +15,7 @@
 //     DISCOVER → PLAN → EXECUTE → VERIFY → SUBMIT → LOG
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createPublicClient, createWalletClient, http, getAddress, padHex } from 'viem';
+import { createPublicClient, createWalletClient, http, getAddress, padHex, keccak256 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { celo, base, mainnet } from 'viem/chains';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
@@ -94,6 +94,7 @@ async function fetchOnePage(url: string): Promise<BlockscoutPage> {
     const resp = await fetch(url, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Lookout/1.0' },
+      cache: 'no-store',
     });
     clearTimeout(timer);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -194,6 +195,7 @@ async function fetchFirstTransaction(
     const resp = await fetch(url, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Lookout/1.0' },
+      cache: 'no-store',
     });
     clearTimeout(timer);
 
@@ -447,10 +449,34 @@ function appendToLog(entry: LogEntry): void {
   log(`Log appended → ${LOG_PATH} (total runs: ${agentLog.runs.length})`);
 }
 
+// ── Audit result type (returned to both CLI and API callers) ──────────────────
+
+export interface AuditResult {
+  runId: string;
+  targetAddress: string;
+  chain: string;
+  score: number;
+  level: string;
+  breakdown: ReturnType<typeof computeScore>['breakdown'];
+  totalTxs: number;
+  successfulTxs: number;
+  failedTxs: number;
+  uniqueCounterparties: number;
+  accountAgeDays: number;
+  isHumanBacked: boolean;
+  ensName: string | null;
+  reportContent: string;
+  reportCID: string;
+  txHash: string | null;
+  durationMs: number;
+  decisions: object[];
+  toolCalls: object[];
+  apiCallsUsed: number;
+}
+
 // ── Main audit function ───────────────────────────────────────────────────────
 
-async function audit(targetAddress: string, chain: Chain): Promise<void> {
-  const startedAt = new Date().toISOString();
+export async function audit(targetAddress: string, chain: Chain): Promise<AuditResult> {
   const startMs = Date.now();
   const runId = `run_${Date.now()}`;
   const target = getAddress(targetAddress) as `0x${string}`;
@@ -688,60 +714,38 @@ async function audit(targetAddress: string, chain: Chain): Promise<void> {
     });
   }
 
-  // Generate and save report with real txHash
+  // Generate report content
   log('SUBMIT: generating audit report...');
-  const report = generateReport(target, chain, scoringResult, ensName, selfVerified, txHash, runId);
-  const reportsDir = resolve(__dirname, '../reports');
-  mkdirSync(reportsDir, { recursive: true });
-  const dateStr = new Date().toISOString().slice(0, 10);
-  const reportPath = resolve(reportsDir, `${target.slice(0, 8)}_${chain}_${dateStr}.md`);
-  writeFileSync(reportPath, report);
-  log(`Report saved → ${reportPath}`);
+  const reportContent = generateReport(target, chain, scoringResult, ensName, selfVerified, txHash, runId);
 
-  // ── LOG ─────────────────────────────────────────────────────────────────────
-  const completedAt = new Date().toISOString();
+  // keccak256 of report content as onchain identifier (no IPFS needed)
+  const reportCIDFinal = keccak256(new TextEncoder().encode(reportContent));
+
   const durationMs = Date.now() - startMs;
-
   log(`Audit complete in ${durationMs}ms. Score: ${scoringResult.score} (${trustLevel(scoringResult.score)})`);
 
-  appendToLog({
+  return {
     runId,
-    type: 'audit',
-    status: txHash ? 'completed' : 'completed_no_write',
-    startedAt,
-    completedAt,
-    durationMs,
+    targetAddress: target,
     chain,
-    input: {
-      targetAddress: target,
-      requestedBy: 'cli',
-      trigger: 'manual',
-    },
+    score: scoringResult.score,
+    level: trustLevel(scoringResult.score),
+    breakdown: scoringResult.breakdown,
+    totalTxs: scoringResult.totalTxs,
+    successfulTxs: scoringResult.successfulTxs,
+    failedTxs: scoringResult.failedTxs,
+    uniqueCounterparties: scoringResult.uniqueCounterparties,
+    accountAgeDays: Math.round(scoringResult.accountAgeDays),
+    isHumanBacked: selfVerified,
+    ensName,
+    reportContent,
+    reportCID: reportCIDFinal,
+    txHash,
+    durationMs,
     decisions,
     toolCalls,
-    output: {
-      targetAddress: target,
-      score: scoringResult.score,
-      level: trustLevel(scoringResult.score),
-      breakdown: scoringResult.breakdown,
-      totalTxs: scoringResult.totalTxs,
-      successfulTxs: scoringResult.successfulTxs,
-      failedTxs: scoringResult.failedTxs,
-      uniqueCounterparties: scoringResult.uniqueCounterparties,
-      accountAgeDays: Math.round(scoringResult.accountAgeDays),
-      isHumanBacked: selfVerified,
-      ensName,
-      reportCID,
-      txHash,
-      reportPath,
-    },
-    computeMetrics: {
-      totalApiCalls: apiCallCount.n,
-      totalRetries: 0,
-      totalDurationMs: durationMs,
-      budgetUsed: `${apiCallCount.n}/${COMPUTE_BUDGET.maxApiCallsPerAudit}`,
-    },
-  });
+    apiCallsUsed: apiCallCount.n,
+  };
 }
 
 // ── CLI entrypoint ────────────────────────────────────────────────────────────
@@ -749,9 +753,8 @@ async function audit(targetAddress: string, chain: Chain): Promise<void> {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
-  // Parse --chain flag
   const chainIdx = args.findIndex(a => a === '--chain');
-  let chain: Chain = 'celo'; // default
+  let chain: Chain = 'celo';
   if (chainIdx !== -1 && args[chainIdx + 1]) {
     const c = args[chainIdx + 1] as Chain;
     if (c !== 'celo' && c !== 'base') die(`Unknown chain: ${c}. Use 'celo' or 'base'`);
@@ -760,19 +763,61 @@ async function main(): Promise<void> {
   }
 
   const targetAddress = args[0];
-  if (!targetAddress) {
-    die('Usage: npx tsx auditor.ts <address> [--chain celo|base]');
-  }
+  if (!targetAddress) die('Usage: npx tsx auditor.ts <address> [--chain celo|base]');
+  if (!/^0x[0-9a-fA-F]{40}$/.test(targetAddress)) die(`Invalid Ethereum address: ${targetAddress}`);
 
-  // Basic address validation
-  if (!/^0x[0-9a-fA-F]{40}$/.test(targetAddress)) {
-    die(`Invalid Ethereum address: ${targetAddress}`);
-  }
+  const startedAt = new Date().toISOString();
+  const result = await audit(targetAddress, chain);
 
-  await audit(targetAddress, chain);
+  // CLI: save report to reports/ directory
+  const reportsDir = resolve(__dirname, '../reports');
+  mkdirSync(reportsDir, { recursive: true });
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const reportPath = resolve(reportsDir, `${result.targetAddress.slice(0, 8)}_${chain}_${dateStr}.md`);
+  writeFileSync(reportPath, result.reportContent);
+  log(`Report saved → ${reportPath}`);
+
+  // CLI: append to agent_log.json
+  appendToLog({
+    runId: result.runId,
+    type: 'audit',
+    status: result.txHash ? 'completed' : 'completed_no_write',
+    startedAt,
+    completedAt: new Date().toISOString(),
+    durationMs: result.durationMs,
+    chain,
+    input: { targetAddress: result.targetAddress, requestedBy: 'cli', trigger: 'manual' },
+    decisions: result.decisions,
+    toolCalls: result.toolCalls,
+    output: {
+      targetAddress: result.targetAddress,
+      score: result.score,
+      level: result.level,
+      breakdown: result.breakdown,
+      totalTxs: result.totalTxs,
+      successfulTxs: result.successfulTxs,
+      failedTxs: result.failedTxs,
+      uniqueCounterparties: result.uniqueCounterparties,
+      accountAgeDays: result.accountAgeDays,
+      isHumanBacked: result.isHumanBacked,
+      ensName: result.ensName,
+      reportCID: result.reportCID,
+      txHash: result.txHash,
+      reportPath,
+    },
+    computeMetrics: {
+      totalApiCalls: result.apiCallsUsed,
+      totalRetries: 0,
+      totalDurationMs: result.durationMs,
+      budgetUsed: `${result.apiCallsUsed}/${COMPUTE_BUDGET.maxApiCallsPerAudit}`,
+    },
+  });
 }
 
-main().catch(err => {
-  console.error('[Lookout][FATAL]', err);
-  process.exit(1);
-});
+// Only run as CLI when executed directly (not when imported as a module)
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch(err => {
+    console.error('[Lookout][FATAL]', err);
+    process.exit(1);
+  });
+}
