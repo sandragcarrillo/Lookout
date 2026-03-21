@@ -8,6 +8,9 @@
     "start": "next start"
   },
   "dependencies": {
+    "@selfxyz/agent-sdk": "^0.2.1",
+    "@selfxyz/core": "^1.0.8",
+    "@selfxyz/qrcode": "^1.0.11",
     "next": "^15.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -17,6 +20,9 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.6.0"
   }
 }

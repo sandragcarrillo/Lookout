@@ -5,10 +5,10 @@
   "tagline": "The credit score for AI agents — onchain, composable, ZK-verified.",
 
   "identity": {
-    "agentAddress": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8",
+    "agentAddress": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
     "erc8004Registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
-    "erc8004TokenIdCelo": "2832",
-    "erc8004TokenIdBase": "34693",
+    "erc8004TokenIdCelo": "3261",
+    "erc8004TokenIdBase": "35219",
     "ensName": null,
     "operator": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8"
   },
@@ -113,16 +113,16 @@
     "celo": {
       "chainId": 42220,
       "trustRegistry": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
-      "erc8004TokenId": "2832",
-      "erc8004RegisterTx": "0x8cd34ce5e8cc24404026a90bd7ab5a0114d1700bd9a93f0050abaca995cfe366",
+      "erc8004TokenId": "3261",
+      "erc8004RegisterTx": "0x8699762c083c484e2f252c7147098bc23f8d6e902b027394677451d317c1a19d",
       "rpc": "https://forno.celo.org",
       "explorer": "https://celoscan.io"
     },
     "base": {
       "chainId": 8453,
       "trustRegistry": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
-      "erc8004TokenId": "34693",
-      "erc8004RegisterTx": "0xd7ab3e3250c082cdfc00c6757fc1ba62615cb4390366f54f7c2a3db5b5a89f83",
+      "erc8004TokenId": "35219",
+      "erc8004RegisterTx": "0x19c7e71c686c3ced8771bb7db68eba73c5bef6db1126e7b2cb71c871ed20d336",
       "rpc": "https://mainnet.base.org",
       "explorer": "https://basescan.org"
     }
@@ -153,5 +153,5 @@
 
   "hackathon": "The Synthesis 2026",
   "createdAt": "2026-03-17T00:00:00Z",
-  "updatedAt": "2026-03-20T00:00:00Z"
+  "updatedAt": "2026-03-21T00:00:00Z"
 }

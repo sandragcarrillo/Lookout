@@ -18,7 +18,7 @@ export const CHAIN_CONFIG = {
     // Self Protocol Agent Registry on Celo (onchain ZK verification)
     selfAgentRegistry: '0xaC3DF9ABf80d0F5c020C06B04Cced27763355944' as `0x${string}`,
     // ERC-8004 tokenId of the Lookout auditor agent on this chain
-    auditorErc8004Id: 2832,
+    auditorErc8004Id: 3261,
   },
   base: {
     chainId: 8453,
@@ -29,7 +29,7 @@ export const CHAIN_CONFIG = {
     explorerApiKey: process.env.BASESCAN_API_KEY ?? '',
     explorer: 'https://basescan.org',
     selfAgentRegistry: null,
-    auditorErc8004Id: 34693,
+    auditorErc8004Id: 35219,
   },
 } as const satisfies Record<Chain, object>;
 
@@ -39,7 +39,7 @@ export const ERC8004_REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as 
 
 // ── Lookout auditor identity ──────────────────────────────────────────────────
 
-export const AUDITOR_ADDRESS = (process.env.AUDITOR_WALLET ?? '0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8') as `0x${string}`;
+export const AUDITOR_ADDRESS = (process.env.AUDITOR_WALLET ?? '0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772') as `0x${string}`;
 export const AUDITOR_PRIVATE_KEY = (process.env.AUDITOR_PRIVATE_KEY ?? '') as `0x${string}`;
 
 // Log file is at repo root (one level up from agent/)

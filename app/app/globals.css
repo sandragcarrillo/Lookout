@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+:root {
+  --font-fraunces: 'Fraunces', Georgia, serif;
+  --font-oswald:   'Oswald', Impact, 'Arial Narrow', sans-serif;
+  --font-plex:     'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', 'Courier New', monospace;
+
+  /* Warm near-black palette — intelligence briefing, not DeFi */
+  --bg-0: #060508;
+  --bg-1: #0b090d;
+  --bg-2: #100e14;
+  --bg-3: #181520;
+  --ink:     #ede0cc;
+  --ink-2:   #8a7f8e;
+  --ink-3:   #4a4250;
+  --ink-4:   #2a2530;
+  --border:       #1e1a26;
+  --border-bright: #2d283a;
+  --accent:  #d4a855;   /* amber gold — classified stamp, rating agency */
+  --accent-dim: rgba(212, 168, 85, 0.12);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-0);
+  color: var(--ink);
+  font-family: var(--font-plex);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: 400;
+}
+
+/* ── Scan-line texture ────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(255, 255, 255, 0.011) 2px,
+    rgba(255, 255, 255, 0.011) 3px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Grain overlay ────────────────────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Score level colors ───────────────────────────────────────────────── */
+:root {
+  --score-bad:     #c0392b;  /* deep warning red — dangerous, not bright */
+  --score-caution: #d4a030;  /* amber gold, traffic light */
+  --score-good:    #27a864;  /* confident green, not neon */
+  --score-diamond: #00b8d4;  /* electric cyan — premium, rare */
+}
+
+.score-bad     { color: var(--score-bad); }
+.score-caution { color: var(--score-caution); }
+.score-good    { color: var(--score-good); }
+.score-diamond { color: var(--score-diamond); }
+
+.bg-score-bad     { background-color: var(--score-bad); }
+.bg-score-caution { background-color: var(--score-caution); }
+.bg-score-good    { background-color: var(--score-good); }
+.bg-score-diamond { background-color: var(--score-diamond); }
+
+/* ── Score bar fill animation ─────────────────────────────────────────── */
+.score-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  width: 0%;
+  animation: barExpand 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes barExpand {
+  from { width: 0%; }
+  to   { width: var(--bar-target); }
+}
+
+/* ── Stagger reveal ───────────────────────────────────────────────────── */
+.stagger-item {
+  opacity: 0;
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Badge delayed fade-in ─────────────────────────────────────────────── */
+.badge-reveal {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out 1.1s forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Verified badge pulse ─────────────────────────────────────────────── */
+@keyframes verifiedPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(39, 168, 100, 0.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(39, 168, 100, 0); }
+}
+.badge-verified {
+  animation: verifiedPulse 2.8s ease-in-out infinite;
+}
+
+/* ── Horizontal scan beam (loading state) ─────────────────────────────── */
+@keyframes scanBeam {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateX(400%); opacity: 0; }
+}
+
+.scan-beam {
+  animation: scanBeam 2s ease-in-out infinite;
+}
+
+/* ── Cursor blink for terminal feel ──────────────────────────────────── */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.cursor-blink {
+  animation: blink 1.1s step-end infinite;
+}
+
+/* ── Glow pulse ──────────────────────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.9; }
+}
+.glow-pulse {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+/* ── Custom scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-0); }
+::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ── Focus ring ───────────────────────────────────────────────────────── */
+*:focus-visible {
+  outline: 1.5px solid rgba(212, 168, 85, 0.7);
+  outline-offset: 2px;
+}
+
+/* ── Select element reset ──────────────────────────────────────────────── */
+select option { background: #100e14; color: #ede0cc; }

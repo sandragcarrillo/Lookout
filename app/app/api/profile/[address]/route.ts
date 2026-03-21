@@ -2,7 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http, getAddress } from 'viem';
 import { celo, base } from 'viem/chains';
 
-const TRUST_REGISTRY = '0xCe74337add024796C9061D88C0d9fa4836d02FE7' as const;
+const TRUST_REGISTRY   = '0xCe74337add024796C9061D88C0d9fa4836d02FE7' as const;
+const ERC8004_REGISTRY = '0x8004A169FB4a3325136EB29fA0ceB6D2e539a432' as const;
+
+/**
+ * Look up an agent's ERC-8004 tokenId via Blockscout API.
+ * ERC-8004 IdentityRegistry is not ERC721Enumerable so we can't use tokenOfOwnerByIndex.
+ * Blockscout NFT holder API is the reliable alternative.
+ */
+async function lookupErc8004Id(owner: string, chain: string): Promise<number> {
+  const blockscoutBase = chain === 'base'
+    ? 'https://base.blockscout.com'
+    : 'https://celo.blockscout.com';
+
+  try {
+    // Query NFT instances held by this address in the ERC-8004 IdentityRegistry
+    const res = await fetch(
+      `${blockscoutBase}/api/v2/tokens/${ERC8004_REGISTRY}/instances?holder_address_hash=${owner}`,
+      { cache: 'no-store', signal: AbortSignal.timeout(5000) },
+    );
+    if (!res.ok) return 0;
+    const data = await res.json() as { items?: { id?: string | number }[] };
+    if (data.items && data.items.length > 0 && data.items[0].id != null) {
+      return Number(data.items[0].id);
+    }
+  } catch {
+    // Timeout or network error — non-fatal
+  }
+  return 0;
+}
 
 const PROFILE_ABI = [
   {
@@ -101,6 +129,13 @@ export async function GET(
     }
 
     const scoreNum = Number(profile.score);
+    // If TrustRegistry has erc8004Id = 0 (auto-registered via credit bureau model),
+    // look up the real tokenId directly from the ERC-8004 IdentityRegistry.
+    const registryErc8004Id = Number(profile.erc8004Id);
+    const erc8004Id = registryErc8004Id > 0
+      ? registryErc8004Id
+      : await lookupErc8004Id(target, chainParam);
+
     return NextResponse.json({
       address: target,
       chain: chainParam,
@@ -120,7 +155,7 @@ export async function GET(
       firstSeenAt:     Number(profile.firstSeenAt),
       lastAuditedAt:   Number(profile.lastAuditedAt),
       auditCount:      Number(profile.auditCount),
-      erc8004Id:       Number(profile.erc8004Id),
+      erc8004Id,
       latestReportCID: profile.latestReportCID,
       contract: TRUST_REGISTRY,
     });

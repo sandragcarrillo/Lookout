@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAddress } from 'viem';
 import { audit } from '@agent/auditor';
 import type { AuditResult } from '@agent/auditor';
+import { checkSelfSignedRequest } from '../../../../lib/selfVerifier';
 
 export const maxDuration = 60; // seconds — audits take ~10-15s
 
@@ -10,8 +11,13 @@ export async function POST(
   { params }: { params: Promise<{ address: string }> },
 ) {
   const { address } = await params;
-  const body = await request.json().catch(() => ({})) as { chain?: string };
+  // Read body as text first so we can pass it to the Self verifier for signature checking
+  const rawBody = await request.text().catch(() => '{}');
+  const body = JSON.parse(rawBody || '{}') as { chain?: string };
   const chainParam = (body.chain ?? request.nextUrl.searchParams.get('chain') ?? 'celo') as string;
+
+  // Optional: check if the calling agent is Self-verified (won't block unsigned callers)
+  const callerVerification = await checkSelfSignedRequest(request, rawBody);
 
   let target: string;
   try {
@@ -25,7 +31,7 @@ export async function POST(
   }
 
   try {
-    const result: AuditResult = await audit(target, chainParam);
+    const result: AuditResult = await audit(target, chainParam, { privateKey: process.env.AUDITOR_PRIVATE_KEY });
 
     return NextResponse.json({
       address: result.targetAddress,
@@ -45,6 +51,7 @@ export async function POST(
       durationMs: result.durationMs,
       report: result.reportContent,   // full markdown report inline
       runId: result.runId,
+      callerSelfVerified: callerVerification?.valid ?? false,
     });
   } catch (err) {
     return NextResponse.json(
