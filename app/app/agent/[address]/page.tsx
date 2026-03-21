@@ -129,6 +129,7 @@ export default function AgentPage() {
   const [loading,     setLoading]     = useState(true);
   const [notFound,    setNotFound]    = useState(false);
   const [error,       setError]       = useState('');
+  const [ensName,     setEnsName]     = useState<string | null>(null);
 
   const address = (() => {
     try { return isAddress(rawAddress) ? getAddress(rawAddress) : null; }
@@ -140,14 +141,23 @@ export default function AgentPage() {
     setLoading(true);
     setNotFound(false);
     setError('');
+    setEnsName(null);
 
-    fetch(`/api/profile/${address}?chain=${chain}`)
-      .then(r => {
+    // Fetch profile and ENS name in parallel
+    Promise.all([
+      fetch(`/api/profile/${address}?chain=${chain}`).then(r => {
         if (r.status === 404) { setNotFound(true); return null; }
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
+      }),
+      fetch(`/api/ens/${address}`).then(r => r.ok ? r.json() : null).catch(() => null),
+    ])
+      .then(([profileData, ensData]) => {
+        if (profileData) setProfile(profileData);
+        if (ensData?.ensName) setEnsName(ensData.ensName);
+        // Also pick up ENS from audit result if available
+        if (profileData?.ensName) setEnsName(profileData.ensName);
       })
-      .then(data => { if (data) setProfile(data); })
       .catch(err => setError(String(err)))
       .finally(() => setLoading(false));
   }, [address, chain]);
@@ -168,6 +178,7 @@ export default function AgentPage() {
       setAuditResult(data);
       setProfile(data);
       setNotFound(false);
+      if (data.ensName) setEnsName(data.ensName);
     } catch (err) {
       setError(String(err));
     } finally {
@@ -222,17 +233,40 @@ export default function AgentPage() {
                 style={{ borderColor: 'var(--border-bright)', background: 'var(--bg-2)' }}>
                 {chain}
               </span>
+              {ensName && (
+                <span className="text-[10px] font-mono px-2 py-0.5 border uppercase tracking-widest"
+                  style={{ borderColor: 'rgba(212,168,85,0.35)', color: 'var(--accent)', background: 'rgba(212,168,85,0.06)' }}>
+                  ENS
+                </span>
+              )}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-sm text-ink break-all leading-relaxed">{address}</span>
-              <a href={explorerAddrUrl(chain, address)} target="_blank" rel="noopener noreferrer"
-                className="flex-shrink-0 text-ink-3 hover:text-accent transition-colors">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-              </a>
-            </div>
+            {/* ENS name as primary identifier when available */}
+            {ensName ? (
+              <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                  <span className="font-display font-semibold text-xl text-ink tracking-tight">{ensName}</span>
+                  <a href={explorerAddrUrl(chain, address)} target="_blank" rel="noopener noreferrer"
+                    className="flex-shrink-0 text-ink-3 hover:text-accent transition-colors">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+                <div className="font-mono text-xs text-ink-3 break-all">{address}</div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-sm text-ink break-all leading-relaxed">{address}</span>
+                <a href={explorerAddrUrl(chain, address)} target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 text-ink-3 hover:text-accent transition-colors">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              </div>
+            )}
           </div>
 
           <button

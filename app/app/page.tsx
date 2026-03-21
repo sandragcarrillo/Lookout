@@ -10,18 +10,40 @@ const EXAMPLE_AGENTS = [
 ];
 
 export default function Home() {
-  const [address, setAddress] = useState('');
-  const [chain, setChain]     = useState<'celo' | 'base'>('celo');
-  const [error, setError]     = useState('');
-  const [focused, setFocused] = useState(false);
+  const [address,    setAddress]    = useState('');
+  const [chain,      setChain]      = useState<'celo' | 'base'>('celo');
+  const [error,      setError]      = useState('');
+  const [focused,    setFocused]    = useState(false);
+  const [resolving,  setResolving]  = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router   = useRouter();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     const val = address.trim();
     if (!val) { inputRef.current?.focus(); return; }
-    if (!isAddress(val)) { setError('Not a valid EVM address.'); return; }
+
+    // ENS name — resolve it to an address first
+    if (val.endsWith('.eth') || (val.includes('.') && !val.startsWith('0x'))) {
+      setResolving(true);
+      setError('');
+      try {
+        const res = await fetch(`/api/ens/resolve/${encodeURIComponent(val)}`);
+        const data = await res.json();
+        if (!res.ok || !data.address) {
+          setError(`Could not resolve "${val}" — ENS name not found.`);
+          return;
+        }
+        router.push(`/agent/${data.address}?chain=${chain}`);
+      } catch {
+        setError('ENS resolution failed. Try pasting the 0x address directly.');
+      } finally {
+        setResolving(false);
+      }
+      return;
+    }
+
+    if (!isAddress(val)) { setError('Not a valid EVM address or ENS name.'); return; }
     setError('');
     router.push(`/agent/${getAddress(val)}?chain=${chain}`);
   }
@@ -141,7 +163,7 @@ export default function Home() {
               onChange={e => { setAddress(e.target.value); setError(''); }}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              placeholder="_ enter agent address (0x...)"
+              placeholder="_ agent address (0x...) or ENS name"
               className="flex-1 px-5 py-4 bg-transparent text-sm font-mono focus:outline-none"
               style={{ color: 'var(--ink)', caretColor: 'var(--accent)' }}
               spellCheck={false}
@@ -150,15 +172,16 @@ export default function Home() {
 
             {/* Submit */}
             <button type="submit"
-              className="flex-shrink-0 m-1.5 px-6 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all duration-150"
+              disabled={resolving}
+              className="flex-shrink-0 m-1.5 px-6 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
-                background: 'var(--accent)',
-                color: '#060508',
+                background: resolving ? 'var(--bg-3)' : 'var(--accent)',
+                color: resolving ? 'var(--ink-2)' : '#060508',
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#c49840')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
+              onMouseEnter={e => { if (!resolving) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
+              onMouseLeave={e => { if (!resolving) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
             >
-              SCAN
+              {resolving ? 'RESOLVING…' : 'SCAN'}
             </button>
           </div>
 
