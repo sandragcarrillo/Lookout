@@ -4,6 +4,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { isAddress, getAddress } from 'viem';
 import Link from 'next/link';
+import { createThirdwebClient } from 'thirdweb';
+import { ThirdwebProvider, ConnectButton, useActiveAccount, useFetchWithPayment, darkTheme } from 'thirdweb/react';
+import { celo, base } from 'thirdweb/chains';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+const client = createThirdwebClient({ clientId: 'c3b6543b2ecc31dce129145fb6309711' });
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -116,12 +123,23 @@ function AnimatedScore({ target, color }: { target: number; color: string }) {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function AgentPage() {
+  return (
+    <ThirdwebProvider>
+      <AgentPageInner />
+    </ThirdwebProvider>
+  );
+}
+
+function AgentPageInner() {
   const params       = useParams();
   const searchParams = useSearchParams();
   const router       = useRouter();
 
   const rawAddress = params.address as string;
   const chain      = (searchParams.get('chain') ?? 'celo') as 'celo' | 'base';
+
+  const account = useActiveAccount();
+  const { fetchWithPayment, isPending: isPaymentPending } = useFetchWithPayment(client);
 
   const [profile,     setProfile]     = useState<Profile | null>(null);
   const [auditing,    setAuditing]    = useState(false);
@@ -163,18 +181,16 @@ export default function AgentPage() {
   }, [address, chain]);
 
   async function runAudit() {
-    if (!address || auditing) return;
+    if (!address || auditing || !account) return;
     setAuditing(true);
     setAuditResult(null);
     setError('');
     try {
-      const res = await fetch(`/api/audit/${address}`, {
+      // fetchWithPayment auto-parses JSON and throws on non-OK / 402 responses
+      const data = await fetchWithPayment(`/api/audit/${address}?chain=${chain}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chain }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+      }) as AuditResult;
       setAuditResult(data);
       setProfile(data);
       setNotFound(false);
@@ -204,8 +220,8 @@ export default function AgentPage() {
     <div className="min-h-screen flex flex-col">
 
       {/* ── Nav ─────────────────────────────────────────────────────── */}
-      <nav className="flex items-center justify-between px-6 md:px-10 py-4 border-b border-border relative z-10">
-        <Link href="/" className="flex items-center gap-3 group">
+      <nav className="flex items-center justify-between px-6 md:px-10 py-4 border-b border-border relative z-10 gap-4">
+        <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60"
               style={{ backgroundColor: 'var(--accent)' }} />
@@ -214,12 +230,47 @@ export default function AgentPage() {
           </span>
           <span className="font-display text-base tracking-[0.18em] text-ink-2 group-hover:text-ink transition-colors font-semibold">LOOKOUT</span>
         </Link>
-        <button
-          onClick={() => router.push(`/agent/${address}?chain=${chain === 'celo' ? 'base' : 'celo'}`)}
-          className="text-[11px] font-mono text-ink-3 hover:text-ink transition-colors border border-border hover:border-border-bright px-3 py-1.5 tracking-widest uppercase"
-        >
-          {chain === 'celo' ? 'Switch to Base' : 'Switch to Celo'}
-        </button>
+        <div className="flex items-center gap-3 ml-auto">
+          <button
+            onClick={() => router.push(`/agent/${address}?chain=${chain === 'celo' ? 'base' : 'celo'}`)}
+            className="text-[11px] font-mono text-ink-3 hover:text-ink transition-colors border border-border hover:border-border-bright px-3 py-1.5 tracking-widest uppercase"
+          >
+            {chain === 'celo' ? 'Switch to Base' : 'Switch to Celo'}
+          </button>
+          <ConnectButton
+            client={client}
+            chains={[celo, base]}
+            theme={darkTheme({
+              colors: {
+                primaryButtonBg: 'var(--accent)',
+                primaryButtonText: '#060508',
+                modalBg: 'var(--bg-1)',
+                borderColor: 'var(--border)',
+                secondaryText: 'var(--ink-3)',
+                primaryText: 'var(--ink)',
+                accentButtonBg: 'var(--bg-2)',
+              },
+            })}
+            connectButton={{ label: 'CONNECT WALLET' }}
+            detailsButton={{
+              style: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                letterSpacing: '0.15em',
+                border: '1px solid var(--border)',
+                borderRadius: '0',
+                background: 'var(--bg-2)',
+                color: 'var(--ink-2)',
+                padding: '6px 12px',
+                height: 'auto',
+              },
+            }}
+            connectModal={{
+              title: 'Connect to run audit',
+              size: 'compact',
+            }}
+          />
+        </div>
       </nav>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 md:px-10 py-10 space-y-5">
@@ -271,20 +322,21 @@ export default function AgentPage() {
 
           <button
             onClick={runAudit}
-            disabled={auditing}
+            disabled={auditing || isPaymentPending || !account}
             className="flex-shrink-0 flex items-center gap-2.5 px-5 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: auditing ? 'var(--bg-3)' : 'var(--accent)',
-              color: auditing ? 'var(--ink-2)' : '#060508',
+              background: (auditing || isPaymentPending) ? 'var(--bg-3)' : account ? 'var(--accent)' : 'var(--bg-3)',
+              color: (auditing || isPaymentPending) ? 'var(--ink-2)' : account ? '#060508' : 'var(--ink-3)',
+              border: account ? 'none' : '1px solid var(--border)',
             }}
-            onMouseEnter={e => { if (!auditing) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
-            onMouseLeave={e => { if (!auditing) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
+            onMouseEnter={e => { if (!auditing && !isPaymentPending && account) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
+            onMouseLeave={e => { if (!auditing && !isPaymentPending && account) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
           >
-            {auditing ? (
+            {(auditing || isPaymentPending) ? (
               <>
                 <span className="inline-block w-3.5 h-3.5 border border-t-transparent rounded-full animate-spin"
                   style={{ borderColor: 'rgba(138,127,142,0.5)', borderTopColor: 'transparent' }} />
-                SCANNING…
+                {isPaymentPending ? 'PAYING…' : 'SCANNING…'}
               </>
             ) : (
               <>
@@ -318,25 +370,70 @@ export default function AgentPage() {
 
         {/* ── Not found ───────────────────────────────────────────── */}
         {!loading && notFound && !auditing && (
-          <div className="stagger-item border p-10 text-center space-y-6"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg-1)' }}>
-            <div className="font-mono text-5xl font-bold text-ink-4">—</div>
-            <div className="space-y-2">
+          <div className="stagger-item border" style={{ borderColor: 'var(--border)', background: 'var(--bg-1)' }}>
+            {/* Empty state message */}
+            <div className="p-10 text-center space-y-3 border-b" style={{ borderColor: 'var(--border)' }}>
+              <div className="font-mono text-5xl font-bold text-ink-4">—</div>
               <p className="font-mono text-sm text-ink tracking-wide uppercase">No record found</p>
               <p className="text-sm text-ink-2 font-light max-w-sm mx-auto leading-relaxed">
                 This address has no audit history. Run a scan to score it and write the result onchain.
               </p>
             </div>
-            <button
-              onClick={runAudit}
-              disabled={auditing}
-              className="mx-auto flex items-center gap-2 px-6 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all"
-              style={{ background: 'var(--accent)', color: '#060508' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#c49840')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'var(--accent)')}
-            >
-              {auditing ? 'SCANNING…' : 'RUN FIRST AUDIT'}
-            </button>
+
+            {/* Payment action panel */}
+            <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-ink-3">Request Audit</span>
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5"
+                    style={{ background: 'rgba(212,168,85,0.1)', color: 'var(--accent)', border: '1px solid rgba(212,168,85,0.2)' }}>
+                    0.01 USDC
+                  </span>
+                </div>
+                <p className="text-sm font-sans text-ink-2 font-light leading-relaxed max-w-xs">
+                  Behavioral scan of onchain activity — scored and written to the registry.
+                </p>
+                {account && (
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#27a864' }} />
+                    <span className="text-[10px] font-mono" style={{ color: 'var(--ink-4)' }}>
+                      {account.address.slice(0, 6)}…{account.address.slice(-4)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {account ? (
+                <button
+                  onClick={runAudit}
+                  disabled={auditing || isPaymentPending}
+                  className="flex-shrink-0 flex items-center gap-2 px-6 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ background: 'var(--accent)', color: '#060508' }}
+                  onMouseEnter={e => { if (!auditing && !isPaymentPending) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
+                  onMouseLeave={e => { if (!auditing && !isPaymentPending) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
+                >
+                  {isPaymentPending ? 'PAYING…' : auditing ? 'SCANNING…' : 'RUN FIRST AUDIT'}
+                </button>
+              ) : (
+                <div className="flex-shrink-0 flex flex-col items-start gap-1.5">
+                  <ConnectButton
+                    client={client}
+                    chains={[celo, base]}
+                    connectButton={{ label: 'CONNECT WALLET' }}
+                    connectModal={{ title: 'Connect to run audit', size: 'compact' }}
+                    theme={darkTheme({
+                      colors: {
+                        primaryButtonBg: 'var(--accent)',
+                        primaryButtonText: '#060508',
+                        modalBg: 'var(--bg-1)',
+                        borderColor: 'var(--border)',
+                      },
+                    })}
+                  />
+                  <p className="text-[10px] font-mono text-ink-4 tracking-wider">Wallet required to pay</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -583,24 +680,108 @@ export default function AgentPage() {
                   )}
                 </div>
 
-                {/* Report — declassified document */}
+                {/* Report — rendered markdown */}
                 {auditResult.report && (
-                  <details className="group">
-                    <summary className="text-xs font-mono cursor-pointer flex items-center gap-2 select-none"
-                      style={{ color: 'var(--accent)' }}>
-                      <svg className="w-3 h-3 group-open:rotate-90 transition-transform flex-shrink-0"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="9 18 15 12 9 6"/>
-                      </svg>
-                      VIEW AUDIT REPORT
-                    </summary>
-                    <div className="mt-4 border-t pt-4 border-dashed" style={{ borderColor: 'var(--border-bright)' }}>
-                      <pre className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap overflow-x-auto"
-                        style={{ color: 'var(--ink-2)' }}>
+                  <div className="border-t pt-5" style={{ borderColor: 'var(--border-bright)', borderStyle: 'dashed' }}>
+                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-ink-3 mb-4">Audit Report</div>
+                    <div className="audit-report">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({ children }) => (
+                            <div className="flex items-center gap-3 mb-5">
+                              <span className="text-[10px] font-mono uppercase tracking-[0.25em] px-2 py-1"
+                                style={{ background: 'var(--bg-3)', color: 'var(--accent)', border: '1px solid rgba(212,168,85,0.2)' }}>
+                                LOOKOUT REPORT
+                              </span>
+                              <span className="text-[10px] font-mono text-ink-4 tracking-wider">{String(children).split('—')[1]?.trim()}</span>
+                            </div>
+                          ),
+                          h2: ({ children }) => (
+                            <div className="flex items-center gap-3 mt-6 mb-3">
+                              <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold"
+                                style={{ color: 'var(--accent)' }}>{children}</span>
+                              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                            </div>
+                          ),
+                          p: ({ children }) => (
+                            <p className="text-sm font-sans font-light leading-relaxed text-ink-2 mb-3">{children}</p>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold" style={{ color: 'var(--ink)' }}>{children}</strong>
+                          ),
+                          em: ({ children }) => (
+                            <em className="not-italic font-mono text-xs" style={{ color: 'var(--ink-3)' }}>{children}</em>
+                          ),
+                          hr: () => (
+                            <div className="my-4 border-t border-dashed" style={{ borderColor: 'var(--border)' }} />
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="space-y-1.5 mb-4">{children}</ul>
+                          ),
+                          li: ({ children }) => (
+                            <li className="flex items-start gap-2.5 text-sm font-sans font-light text-ink-2">
+                              <span className="mt-[7px] w-1 h-1 flex-shrink-0 rounded-full"
+                                style={{ backgroundColor: 'var(--accent)', opacity: 0.6 }} />
+                              <span>{children}</span>
+                            </li>
+                          ),
+                          code: ({ children, className }) => {
+                            const isBlock = className?.includes('language-');
+                            if (isBlock) {
+                              return (
+                                <pre className="p-4 my-3 overflow-x-auto"
+                                  style={{ background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
+                                  <code className="text-xs font-mono leading-relaxed"
+                                    style={{ color: 'var(--ink-2)' }}>{children}</code>
+                                </pre>
+                              );
+                            }
+                            return (
+                              <code className="text-xs font-mono px-1.5 py-0.5"
+                                style={{ background: 'var(--bg-3)', color: 'var(--accent)', border: '1px solid var(--border)' }}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre: ({ children }) => <>{children}</>,
+                          table: ({ children }) => (
+                            <div className="overflow-x-auto mb-4">
+                              <table className="w-full text-xs font-mono border-collapse">{children}</table>
+                            </div>
+                          ),
+                          thead: ({ children }) => (
+                            <thead style={{ borderBottom: '1px solid var(--border-bright)' }}>{children}</thead>
+                          ),
+                          th: ({ children }) => (
+                            <th className="text-left py-2 pr-6 text-[10px] uppercase tracking-widest font-medium"
+                              style={{ color: 'var(--ink-3)' }}>{children}</th>
+                          ),
+                          tr: ({ children }) => (
+                            <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>
+                          ),
+                          td: ({ children }) => (
+                            <td className="py-2 pr-6 text-ink-2">{children}</td>
+                          ),
+                          a: ({ href, children }) => (
+                            <a href={href} target="_blank" rel="noopener noreferrer"
+                              className="font-mono text-xs hover:underline underline-offset-2 transition-colors"
+                              style={{ color: 'var(--accent)' }}>
+                              {children}
+                            </a>
+                          ),
+                          blockquote: ({ children }) => (
+                            <blockquote className="border-l-2 pl-4 my-3"
+                              style={{ borderColor: 'var(--accent)', background: 'rgba(212,168,85,0.04)' }}>
+                              {children}
+                            </blockquote>
+                          ),
+                        }}
+                      >
                         {auditResult.report}
-                      </pre>
+                      </ReactMarkdown>
                     </div>
-                  </details>
+                  </div>
                 )}
               </div>
             )}
