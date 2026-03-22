@@ -1,0 +1,57 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0a0a0f"/>
+  <g opacity="0.04" stroke="#d4a017">
+    <line x1="0" y1="0" x2="0" y2="630" stroke-width="0.5"/><line x1="60" y1="0" x2="60" y2="630" stroke-width="0.5"/><line x1="120" y1="0" x2="120" y2="630" stroke-width="0.5"/><line x1="180" y1="0" x2="180" y2="630" stroke-width="0.5"/><line x1="240" y1="0" x2="240" y2="630" stroke-width="0.5"/><line x1="300" y1="0" x2="300" y2="630" stroke-width="0.5"/><line x1="360" y1="0" x2="360" y2="630" stroke-width="0.5"/><line x1="420" y1="0" x2="420" y2="630" stroke-width="0.5"/><line x1="480" y1="0" x2="480" y2="630" stroke-width="0.5"/><line x1="540" y1="0" x2="540" y2="630" stroke-width="0.5"/><line x1="600" y1="0" x2="600" y2="630" stroke-width="0.5"/><line x1="660" y1="0" x2="660" y2="630" stroke-width="0.5"/><line x1="720" y1="0" x2="720" y2="630" stroke-width="0.5"/><line x1="780" y1="0" x2="780" y2="630" stroke-width="0.5"/><line x1="840" y1="0" x2="840" y2="630" stroke-width="0.5"/><line x1="900" y1="0" x2="900" y2="630" stroke-width="0.5"/><line x1="960" y1="0" x2="960" y2="630" stroke-width="0.5"/><line x1="1020" y1="0" x2="1020" y2="630" stroke-width="0.5"/><line x1="1080" y1="0" x2="1080" y2="630" stroke-width="0.5"/><line x1="1140" y1="0" x2="1140" y2="630" stroke-width="0.5"/><line x1="1200" y1="0" x2="1200" y2="630" stroke-width="0.5"/>
+    <line x1="0" y1="60" x2="1200" y2="60" stroke-width="0.5"/><line x1="0" y1="120" x2="1200" y2="120" stroke-width="0.5"/><line x1="0" y1="180" x2="1200" y2="180" stroke-width="0.5"/><line x1="0" y1="240" x2="1200" y2="240" stroke-width="0.5"/><line x1="0" y1="300" x2="1200" y2="300" stroke-width="0.5"/><line x1="0" y1="360" x2="1200" y2="360" stroke-width="0.5"/><line x1="0" y1="420" x2="1200" y2="420" stroke-width="0.5"/><line x1="0" y1="480" x2="1200" y2="480" stroke-width="0.5"/><line x1="0" y1="540" x2="1200" y2="540" stroke-width="0.5"/>
+  </g>
+  <g transform="translate(880, 315)">
+    <defs><clipPath id="rc"><circle cx="0" cy="0" r="200"/></clipPath></defs>
+    <circle cx="0" cy="0" r="200" fill="none" stroke="#d4a017" stroke-width="0.8" opacity="0.2"/>
+    <circle cx="0" cy="0" r="150" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.15"/>
+    <circle cx="0" cy="0" r="100" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.15"/>
+    <circle cx="0" cy="0" r="50" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.15"/>
+    <line x1="0" y1="-200" x2="0" y2="200" stroke="#d4a017" stroke-width="0.3" opacity="0.1"/>
+    <line x1="-200" y1="0" x2="200" y2="0" stroke="#d4a017" stroke-width="0.3" opacity="0.1"/>
+    <line x1="-141" y1="-141" x2="141" y2="141" stroke="#d4a017" stroke-width="0.3" opacity="0.08"/>
+    <line x1="141" y1="-141" x2="-141" y2="141" stroke="#d4a017" stroke-width="0.3" opacity="0.08"/>
+    <g clip-path="url(#rc)">
+      <path d="M0 0 L0 -200 A200 200 0 0 1 173 -100 Z" fill="#d4a017" opacity="0.08"/>
+      <line x1="0" y1="0" x2="173" y2="-100" stroke="#d4a017" stroke-width="1.5" opacity="0.5"/>
+    </g>
+    <circle cx="-60" cy="-90" r="5" fill="#d4a017" opacity="0.9"/><circle cx="-60" cy="-90" r="10" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.3"/>
+    <circle cx="80" cy="-40" r="4" fill="#d4a017" opacity="0.6"/><circle cx="80" cy="-40" r="8" fill="none" stroke="#d4a017" stroke-width="0.4" opacity="0.2"/>
+    <circle cx="30" cy="110" r="3.5" fill="#d4a017" opacity="0.4"/>
+    <circle cx="-100" cy="50" r="3" fill="#d4a017" opacity="0.3"/>
+    <circle cx="120" cy="80" r="2.5" fill="#d4a017" opacity="0.2"/>
+    <circle cx="0" cy="0" r="4" fill="#d4a017" opacity="0.9"/><circle cx="0" cy="0" r="1.5" fill="#0a0a0f"/>
+  </g>
+  <text x="80" y="200" font-family="monospace" font-size="72" font-weight="700" fill="#d4a017" letter-spacing="6">LOOKOUT</text>
+  <text x="80" y="260" font-family="monospace" font-size="20" fill="#c4943a" opacity="0.8" letter-spacing="1">The credit score for AI agents</text>
+  <line x1="80" y1="290" x2="500" y2="290" stroke="#d4a017" stroke-width="0.5" opacity="0.3"/>
+  <text x="80" y="330" font-family="monospace" font-size="14" fill="#888" letter-spacing="0.5">Onchain reputation scoring built on ERC-8004</text>
+  <text x="80" y="355" font-family="monospace" font-size="14" fill="#888" letter-spacing="0.5">Self Protocol ZK identity · x402 payments</text>
+  <text x="80" y="380" font-family="monospace" font-size="14" fill="#888" letter-spacing="0.5">Deployed on Celo + Base</text>
+  <g transform="translate(80, 420)">
+    <rect x="0" y="0" width="90" height="70" rx="4" fill="#1a0a0a" stroke="#cc3333" stroke-width="0.5" opacity="0.8"/>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#cc3333">19</text>
+    <text x="45" y="55" text-anchor="middle" font-family="monospace" font-size="9" fill="#cc3333" opacity="0.7">NOT TRUSTED</text>
+  </g>
+  <g transform="translate(190, 420)">
+    <rect x="0" y="0" width="90" height="70" rx="4" fill="#1a1508" stroke="#d4a017" stroke-width="0.5" opacity="0.8"/>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#d4a017">45</text>
+    <text x="45" y="55" text-anchor="middle" font-family="monospace" font-size="9" fill="#d4a017" opacity="0.7">CAUTION</text>
+  </g>
+  <g transform="translate(300, 420)">
+    <rect x="0" y="0" width="90" height="70" rx="4" fill="#0a1a0a" stroke="#33aa55" stroke-width="0.5" opacity="0.8"/>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#33aa55">72</text>
+    <text x="45" y="55" text-anchor="middle" font-family="monospace" font-size="9" fill="#33aa55" opacity="0.7">TRUSTED</text>
+  </g>
+  <g transform="translate(410, 420)">
+    <rect x="0" y="0" width="90" height="70" rx="4" fill="#0a1218" stroke="#22aacc" stroke-width="0.5" opacity="0.8"/>
+    <text x="45" y="35" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#22aacc">91</text>
+    <text x="45" y="55" text-anchor="middle" font-family="monospace" font-size="9" fill="#22aacc" opacity="0.7">HIGHLY TRUSTED</text>
+  </g>
+  <text x="80" y="560" font-family="monospace" font-size="11" fill="#555" letter-spacing="1">Built for The Synthesis 2026 · github.com/sandragcarrillo/Lookout</text>
+  <rect x="0" y="0" width="1200" height="2" fill="#d4a017" opacity="0.4"/>
+  <rect x="0" y="628" width="1200" height="2" fill="#d4a017" opacity="0.2"/>
+</svg>
