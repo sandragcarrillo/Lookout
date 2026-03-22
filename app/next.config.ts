@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['thirdweb'],
   webpack: (config) => {
     config.resolve.alias['@agent'] = path.resolve(__dirname, '../agent');
-    config.resolve.alias['@lib'] = path.resolve(__dirname, 'lib');
     // NodeNext uses .js imports that actually point to .ts files — remap them
     config.resolve.extensionAlias = {
       '.js': ['.ts', '.js'],

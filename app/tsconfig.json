@@ -20,9 +20,6 @@
     "paths": {
       "@agent/*": [
         "../agent/*"
-      ],
-      "@lib/*": [
-        "./lib/*"
       ]
     },
     "plugins": [
