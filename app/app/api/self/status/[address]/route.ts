@@ -10,7 +10,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getAddress } from 'viem';
-import { checkAgentStatus } from '../../../../lib/selfVerifier';
+import { checkAgentStatus } from '../../../../utils/selfVerifier';
 
 export async function GET(
   _request: NextRequest,
