@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
       '.js': ['.ts', '.js'],
       '.mjs': ['.mts', '.mjs'],
     };
+    // Agent lives outside app/ — tell webpack to resolve its imports from app/node_modules
+    // Keep 'node_modules' first so normal upward traversal still works for everything else
+    config.resolve.modules = ['node_modules', path.resolve(__dirname, 'node_modules')];
     return config;
   },
 };
