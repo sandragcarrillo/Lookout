@@ -265,7 +265,21 @@ function AgentPageInner() {
                 accentButtonBg: 'var(--bg-2)',
               },
             })}
-            connectButton={{ label: 'CONNECT WALLET' }}
+            connectButton={{
+              label: 'CONNECT WALLET',
+              style: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                letterSpacing: '0.15em',
+                border: 'none',
+                borderRadius: '0',
+                background: 'var(--accent)',
+                color: '#060508',
+                padding: '6px 12px',
+                height: 'auto',
+                minWidth: 0,
+              },
+            }}
             detailsButton={{
               style: {
                 fontFamily: 'var(--font-mono)',
@@ -454,7 +468,21 @@ function AgentPageInner() {
                   <ConnectButton
                     client={client}
                     chains={[celo, base]}
-                    connectButton={{ label: 'CONNECT WALLET' }}
+                    connectButton={{
+                      label: 'CONNECT WALLET',
+                      style: {
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '11px',
+                        letterSpacing: '0.15em',
+                        border: '1px solid var(--border)',
+                        borderRadius: '0',
+                        background: 'var(--accent)',
+                        color: '#060508',
+                        padding: '10px 24px',
+                        height: 'auto',
+                        minWidth: 0,
+                      },
+                    }}
                     connectModal={{ title: 'Connect to run audit', size: 'compact' }}
                     theme={darkTheme({
                       colors: {
