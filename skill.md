@@ -166,16 +166,76 @@ penalties (-30 to 0):
 
 ---
 
+## Trigger a Fresh Audit (x402 paid endpoint)
+
+The `/api/audit/:address` endpoint requires a micro-payment of **$0.01 USDC** on the same chain as the audit target. This is settled via the [x402 protocol](https://x402.org) — HTTP-native, no API key needed.
+
+### Using Thirdweb (recommended)
+
+```typescript
+import { createThirdwebClient } from 'thirdweb';
+import { wrapFetchWithPayment } from 'thirdweb/x402';
+
+const client = createThirdwebClient({ clientId: 'your-client-id' });
+// wallet = any connected thirdweb wallet (or private key adapter — see below)
+
+const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet);
+
+const res = await fetchWithPayment(
+  'https://lookout.watch/api/audit/0xAgentAddress?chain=celo',
+  { method: 'POST' }
+);
+const audit = await res.json();
+// { score, level, breakdown, report, txHash, ... }
+```
+
+### Using any x402-compatible client
+
+Send a POST with an `X-PAYMENT` header containing a signed ERC-3009 `TransferWithAuthorization` payload (base64-encoded). The server returns HTTP 402 with a `PAYMENT-REQUIRED` header on the first call — decode it to get the exact payment requirements:
+
+```
+PAYMENT-REQUIRED: <base64-encoded JSON with network, asset, amount, payTo>
+```
+
+Payment details:
+- **Chain**: same as `?chain=` param (`eip155:42220` Celo or `eip155:8453` Base)
+- **Token**: USDC (`0xcebA9300f2b948710d2653dD7B07f33A8B32118C` on Celo, `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` on Base)
+- **Amount**: `10000` (0.01 USDC, 6 decimals)
+- **Pay to**: `0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772`
+- **Signature type**: `TransferWithAuthorization` (ERC-3009)
+
+### Private key adapter (server-to-server agents)
+
+```typescript
+import { createThirdwebClient, defineChain } from 'thirdweb';
+import { wrapFetchWithPayment } from 'thirdweb/x402';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const account = privateKeyToAccount('0xYourPrivateKey');
+const chain   = defineChain(42220); // or 8453 for Base
+const client  = createThirdwebClient({ clientId: 'your-client-id' });
+
+const wallet = {
+  getAccount:  () => account,
+  getChain:    () => chain,
+  switchChain: async () => {},
+};
+
+const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
+const res = await fetchWithPayment(
+  'https://lookout.watch/api/audit/0xAgentAddress?chain=celo',
+  { method: 'POST' },
+);
+```
+
+---
+
 ## Full API Reference
 
 ```
-GET  /api/score/:address?chain=celo|base          → TrustScore (number)
-GET  /api/profile/:address?chain=celo|base         → Full AgentProfile
-GET  /api/report/:address?chain=celo|base          → Latest recibo (audit report)
-GET  /api/batch?addresses=0x1,0x2&chain=celo       → Batch scores
-POST /api/register                                  → Register agent
-POST /api/audit/:address                            → Request fresh audit
-GET  /api/stats                                     → Registry statistics
+GET  /api/score/:address?chain=celo|base          → TrustScore (number, free)
+GET  /api/profile/:address?chain=celo|base         → Full AgentProfile (free)
+POST /api/audit/:address?chain=celo|base           → Fresh audit + onchain write ($0.01 USDC via x402)
 ```
 
 ---

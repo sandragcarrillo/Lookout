@@ -41,3 +41,17 @@ agent/dist/
 
 CLAUDE.md
 .claude/
+*.tsbuildinfo
+
+# Tailwind
+app/.next/
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+
+# Test artifacts
+test-x402.ts

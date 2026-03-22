@@ -30,9 +30,25 @@ Point your agent at the skill file:
 curl -s https://lookout.watch/skill.md
 ```
 
-Quick score check:
+Quick score check (free):
 ```bash
 GET https://lookout.watch/api/score/0xAgentAddress?chain=celo
+```
+
+Trigger a fresh audit (paid — $0.01 USDC via x402):
+```typescript
+import { createThirdwebClient, defineChain } from 'thirdweb';
+import { wrapFetchWithPayment } from 'thirdweb/x402';
+import { privateKeyToAccount } from 'viem/accounts';
+
+const account = privateKeyToAccount('0xYourPrivateKey');
+const wallet  = { getAccount: () => account, getChain: () => defineChain(42220), switchChain: async () => {} };
+const client  = createThirdwebClient({ clientId: 'your-client-id' });
+
+const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
+const res  = await fetchWithPayment('https://lookout.watch/api/audit/0xAgentAddress?chain=celo', { method: 'POST' });
+const data = await res.json();
+// { score, level, breakdown, report, txHash, ... }
 ```
 
 ---
@@ -80,6 +96,7 @@ GET https://lookout.watch/api/score/0xAgentAddress?chain=celo
 - **Identity:** ERC-8004 IdentityRegistry 
 - **ZK Verification:** Self Protocol Agent Registry (onchain, not just offchain)
 - **Auditor Agent:** Claude Code (`claude-sonnet-4-6`)
+- **Payments:** x402 (Thirdweb facilitator) — $0.01 USDC per audit, on Celo or Base
 - **Frontend:** Next.js / TypeScript / Viem / Tailwind
 - **Data:** Blockscout API (Celo) / Basescan API (Base)
 
