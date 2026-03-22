@@ -1,0 +1,28 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="fc">
+      <circle cx="64" cy="64" r="60"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="64" cy="64" r="60" fill="#0a0a0f" stroke="#d4a017" stroke-width="2"/>
+
+  <circle cx="64" cy="64" r="45" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.3"/>
+  <circle cx="64" cy="64" r="30" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.3"/>
+  <circle cx="64" cy="64" r="15" fill="none" stroke="#d4a017" stroke-width="0.5" opacity="0.3"/>
+
+  <line x1="64" y1="4" x2="64" y2="124" stroke="#d4a017" stroke-width="0.4" opacity="0.2"/>
+  <line x1="4" y1="64" x2="124" y2="64" stroke="#d4a017" stroke-width="0.4" opacity="0.2"/>
+
+  <g clip-path="url(#fc)">
+    <path d="M64 64 L64 4 A60 60 0 0 1 116 40 Z" fill="#d4a017" opacity="0.15"/>
+    <line x1="64" y1="64" x2="116" y2="40" stroke="#d4a017" stroke-width="2.5" opacity="0.8"/>
+  </g>
+
+  <circle cx="52" cy="38" r="4" fill="#d4a017" opacity="0.9"/>
+  <circle cx="82" cy="52" r="3" fill="#d4a017" opacity="0.6"/>
+  <circle cx="48" cy="78" r="2.5" fill="#d4a017" opacity="0.35"/>
+
+  <circle cx="64" cy="64" r="4" fill="#d4a017" opacity="0.9"/>
+  <circle cx="64" cy="64" r="1.5" fill="#0a0a0f"/>
+</svg>

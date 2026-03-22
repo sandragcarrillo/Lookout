@@ -36,10 +36,14 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Lookout — Agent Trust Intelligence',
-  description: 'The credit score for AI agents. Onchain behavioral scoring — composable, ZK-verified.',
+  title: 'Lookout: Agent Trust Intelligence',
+  description: 'The credit score for AI agents. Onchain behavioral scoring, composable, ZK-verified.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
-    title: 'Lookout — Agent Trust Intelligence',
+    title: 'Lookout: Agent Trust Intelligence',
     description: 'Check the trust score of any AI agent before transacting.',
     siteName: 'Lookout',
   },

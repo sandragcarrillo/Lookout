@@ -1,0 +1,157 @@
+{
+  "name": "Lookout",
+  "version": "1.1.0",
+  "description": "Onchain reputation scoring protocol for AI agents. Audits onchain behavior, integrates ZK identity via Self Protocol, and writes composable TrustScores that any agent, dApp, or human can query before transacting.",
+  "tagline": "The credit score for AI agents — onchain, composable, ZK-verified.",
+
+  "identity": {
+    "agentAddress": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
+    "erc8004Registry": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432",
+    "erc8004TokenIdCelo": "3261",
+    "erc8004TokenIdBase": "35219",
+    "ensName": null,
+    "operator": "0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8"
+  },
+
+  "runtime": {
+    "type": "claude-code",
+    "model": "claude-sonnet-4-6",
+    "autonomy": "semi-autonomous",
+    "triggerModes": ["api-call", "manual", "scheduled"]
+  },
+
+  "tools": [
+    {
+      "name": "blockscout_api",
+      "description": "Fetch transaction history for a wallet on Celo or Base via Blockscout v2 REST API (no API key required)",
+      "endpoint": "https://celo.blockscout.com/api/v2"
+    },
+    {
+      "name": "blockscout_compat_api",
+      "description": "Fetch oldest transaction (sort=asc) using Blockscout Etherscan-compat endpoint",
+      "endpoint": "https://celo.blockscout.com/api"
+    },
+    {
+      "name": "trust_registry_write",
+      "description": "Write TrustScore and audit breakdown onchain via TrustRegistry.updateScore(). Auto-registers any address on first audit (credit bureau model — no target cooperation required).",
+      "contract": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
+      "chains": ["celo:42220", "base:8453"],
+      "method": "updateScore(address,uint256,ScoreBreakdown,string)"
+    },
+    {
+      "name": "trust_registry_read",
+      "description": "Read TrustScore and full profile from TrustRegistry",
+      "contract": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
+      "methods": ["getScore(address)", "getFullProfile(address)", "isRegistered(address)"]
+    },
+    {
+      "name": "erc8004_identity_read",
+      "description": "Read ERC-8004 IdentityRegistry to verify agent ownership and metadata",
+      "contract": "0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    },
+    {
+      "name": "self_protocol_verify",
+      "description": "Verify ZK human-backed status via Self Protocol (load-bearing: +15 TrustScore bonus)",
+      "contract": "0xaC3DF9ABf80d0F5c020C06B04Cced27763355944",
+      "chain": "celo:42220",
+      "method": "isVerifiedAgent(bytes32)"
+    },
+    {
+      "name": "ens_resolver",
+      "description": "Resolve ENS names for agent addresses via Ethereum mainnet",
+      "endpoint": "https://eth.llamarpc.com"
+    }
+  ],
+
+  "capabilities": [
+    "Fetch and classify onchain transactions (swaps, transfers, contract calls, failures)",
+    "Calculate TrustScore (0-100) using behavioral scoring model",
+    "Write scores and audit breakdowns onchain via TrustRegistry (credit bureau model)",
+    "Generate human-readable audit reports returned inline in API responses",
+    "Verify ZK human-backed identity via Self Protocol",
+    "Resolve ENS names for agent addresses",
+    "Serve trust data to other agents via REST API and direct contract reads",
+    "Full autonomous loop: DISCOVER → PLAN → EXECUTE → VERIFY → SUBMIT → LOG"
+  ],
+
+  "api": {
+    "base": "https://lookout-agent.vercel.app/api",
+    "routes": [
+      { "method": "GET",  "path": "/api/score/:address",   "query": "chain=celo|base", "description": "Quick TrustScore check" },
+      { "method": "GET",  "path": "/api/profile/:address", "query": "chain=celo|base", "description": "Full profile + breakdown" },
+      { "method": "POST", "path": "/api/audit/:address",   "body": "{\"chain\":\"celo|base\"}", "description": "Trigger fresh audit + onchain write, returns report inline" }
+    ]
+  },
+
+  "scoringModel": {
+    "range": "0-100",
+    "baseScore": {
+      "txCount":       { "max": 15, "description": "More txs = more behavioral data" },
+      "successRate":   { "max": 15, "description": "% of txs that did not revert" },
+      "accountAge":    { "max": 15, "description": "Days since first onchain tx" },
+      "counterparties":{ "max": 15, "description": "Unique addresses interacted with" }
+    },
+    "bonuses": {
+      "selfVerified": { "value": 15, "description": "Human verified via Self Protocol ZK proof" },
+      "ensName":      { "value": 5,  "description": "Agent has ENS identity" },
+      "consistency":  { "value": 10, "description": "Regular activity across 3+ days, no burst concentration" }
+    },
+    "penalties": {
+      "highRevertRate": { "value": -10, "description": ">20% of txs fail" },
+      "dormant":        { "value": -5,  "description": "No activity in 30+ days" },
+      "suspicious":     { "value": -15, "description": "Interaction with flagged addresses" }
+    },
+    "levels": {
+      "0-25":   "not_trusted",
+      "26-50":  "caution",
+      "51-75":  "trusted",
+      "76-100": "highly_trusted"
+    }
+  },
+
+  "contracts": {
+    "celo": {
+      "chainId": 42220,
+      "trustRegistry": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
+      "erc8004TokenId": "3261",
+      "erc8004RegisterTx": "0x8699762c083c484e2f252c7147098bc23f8d6e902b027394677451d317c1a19d",
+      "rpc": "https://forno.celo.org",
+      "explorer": "https://celoscan.io"
+    },
+    "base": {
+      "chainId": 8453,
+      "trustRegistry": "0xCe74337add024796C9061D88C0d9fa4836d02FE7",
+      "erc8004TokenId": "35219",
+      "erc8004RegisterTx": "0x19c7e71c686c3ced8771bb7db68eba73c5bef6db1126e7b2cb71c871ed20d336",
+      "rpc": "https://mainnet.base.org",
+      "explorer": "https://basescan.org"
+    }
+  },
+
+  "safetyGuardrails": [
+    "Never write a score without completing a full transaction audit",
+    "Score is validated against all component bounds before any onchain write",
+    "Cap score at 100 enforced both offchain (scorer.ts) and onchain (TrustRegistry.sol)",
+    "All onchain writes require auditor wallet signature — owner cannot write scores directly",
+    "Self Protocol verification is read-only — Lookout cannot forge ZK proofs",
+    "Compute budget enforced: max API calls per audit tracked and capped"
+  ],
+
+  "computeBudget": {
+    "maxApiCallsPerAudit": 10,
+    "maxRetries": 3,
+    "timeoutSeconds": 30,
+    "maxConcurrentAudits": 5
+  },
+
+  "links": {
+    "website": "https://lookout-agent.vercel.app",
+    "github": "https://github.com/sandragcarrillo/Lookout",
+    "skill": "https://lookout-agent.vercel.app/skill.md",
+    "api": "https://lookout-agent.vercel.app/api"
+  },
+
+  "hackathon": "The Synthesis 2026",
+  "createdAt": "2026-03-17T00:00:00Z",
+  "updatedAt": "2026-03-21T01:00:00Z"
+}

@@ -1,21 +1,19 @@
-# Lookout — Agent Trust Protocol
+# Lookout: Agent Trust Protocol
 
-> Before your agent pays, trusts, or cooperates with another agent — check their TrustScore.
+Lookout answers one question before your agent transacts: can this counterparty be trusted? It audits onchain behavior, integrates ZK identity verification, and writes a composable TrustScore (0-100) that any agent, dApp, or human can query. Scores are stored onchain on Celo and Base via the TrustRegistry contract, built on ERC-8004 agent identity.
 
-Lookout is an onchain reputation scoring layer for AI agents, built on top of [ERC-8004](https://www.8004.org).  
-It audits agent behavior from public on-chain transactions and writes a composable TrustScore.
+## What You Can Do With This Skill
 
----
+You can check the trust score of any EVM wallet address before sending funds, signing agreements, or cooperating with another agent. You can also trigger a fresh audit of any address to get an up-to-date behavioral score written onchain. Score reads are free and instant. Fresh audits cost $0.01 USDC paid via x402.
 
-## Quick Score Check (read-only, no gas)
+## Checking a Score
 
-### Via API
+To check an existing score, make a GET request with the wallet address and chain. No wallet, no payment, no authentication needed. If the address has never been audited, score will be 0 and registered will be false.
 
-```bash
-GET https://lookout-agent.vercel.app/api/score/{walletAddress}?chain=celo|base [TBD]
+```
+GET https://lookout-agent.vercel.app/api/score/{address}?chain=celo|base
 ```
 
-Response:
 ```json
 {
   "address": "0xABC...",
@@ -34,233 +32,143 @@ Response:
     "penalties": -2
   },
   "lastAuditedAt": "2026-03-21T14:30:00Z",
-  "reportCID": "QmXyz...",
+  "reportCID": "Qm...",
   "chain": "celo"
 }
 ```
 
-### Via Smart Contract (direct on-chain read)
+For the full profile including the audit report text:
 
 ```
-TrustRegistry on Celo Sepolia (testnet, 11142220): 0xAc800b34E85256DD8dd503b8E8e08893C9bDe57A
-TrustRegistry on Base Sepolia  (testnet, 84532):   0xbC50290e05d9F159c0CB6db1008Acc0a1228AF55
-TrustRegistry on Celo (42220):  0xCe74337add024796C9061D88C0d9fa4836d02FE7
-TrustRegistry on Base (8453):   0xCe74337add024796C9061D88C0d9fa4836d02FE7
-ERC-8004 IdentityRegistry:      0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
+GET https://lookout-agent.vercel.app/api/profile/{address}?chain=celo|base
 ```
 
-```solidity
-// Solidity — check score before transacting
-ITrustRegistry lookout = ITrustRegistry(LOOKOUT_ADDRESS);
-uint256 score = lookout.getScore(counterpartyAddress);
-bool human = lookout.isHumanBacked(counterpartyAddress);
+## How to Interpret a Score
 
-// Batch check multiple agents
-address[] memory agents = new address[](3);
-agents[0] = 0xA...; agents[1] = 0xB...; agents[2] = 0xC...;
-uint256[] memory scores = lookout.getScores(agents);
-```
+A score of 76-100 means highly trusted. A score of 51-75 means trusted. A score of 26-50 means caution, proceed with small transactions only. A score below 26, or an unregistered address, means abort and find another counterparty. If isHumanBacked is true, there is a ZK-verified human behind the agent, which adds confidence. If false, the agent is fully autonomous with no human accountability link.
 
-```typescript
-// TypeScript (viem) — check score from frontend or agent
-import { createPublicClient, http } from 'viem';
-import { celo } from 'viem/chains';
-import { trustRegistryAbi } from './abi/TrustRegistry';
+## Triggering a Fresh Audit
 
-const client = createPublicClient({ chain: celo, transport: http() });
+When a score is stale or the address has never been audited, POST to the audit endpoint. The server uses the x402 protocol for payment: a two-step HTTP flow with no API key required.
 
-const score = await client.readContract({
-  address: LOOKOUT_ADDRESS,
-  abi: trustRegistryAbi,
-  functionName: 'getScore',
-  args: ['0xCounterpartyAddress'],
-});
+**Before you can pay, you need:**
+- An EVM wallet (your agent's own address + private key)
+- At least 0.01 USDC on the same chain as the audit target (Base or Celo)
 
-const profile = await client.readContract({
-  address: LOOKOUT_ADDRESS,
-  abi: trustRegistryAbi,
-  functionName: 'getFullProfile',
-  args: ['0xCounterpartyAddress'],
-});
-```
-
----
-
-## Decision Logic for Your Agent
-
-Before executing a transaction with another agent:
+This is intentional: x402 is designed for agents that control their own wallets and can pay autonomously without a human approving each transaction. If your agent does not have a wallet yet, create one and fund it with a small amount of USDC on Base or Celo before calling this endpoint.
 
 ```
-1. score = lookout.getScore(counterpartyAddress)
-2. human = lookout.isHumanBacked(counterpartyAddress)
-
-IF score >= 51 AND human == true  → PROCEED (trusted)
-IF score >= 51 AND human == false → PROCEED WITH CAUTION (limit tx value)
-IF score 26-50                    → HIGH CAUTION (small txs only, verify manually)
-IF score < 26 OR not registered   → ABORT — find another counterparty
+POST https://lookout-agent.vercel.app/api/audit/{address}?chain=celo|base
 ```
 
----
+### Step 1 — first call, no payment header
 
-## Register Your Agent (start building reputation)
+Send the POST bare. The server responds HTTP 402 with a `payment-required` header (base64-encoded JSON) describing what to pay.
 
-### Via API
+### Step 2 — build and sign the payment payload
 
-```bash
-POST https://lookout-agent.vercel.app/api/register
-Content-Type: application/json
+Construct the following JSON, sign it with EIP-712 `TransferWithAuthorization` (ERC-3009) using your wallet's private key, then base64-encode the whole object and send it in the `PAYMENT-SIGNATURE` header:
 
+```json
 {
-  "address": "0xYourAgentWallet",
-  "chain": "celo",
-  "erc8004Id": 42  // optional — your ERC-8004 tokenId
+  "x402Version": 2,
+  "scheme": "exact",
+  "network": "eip155:42220",
+  "payload": {
+    "signature": "0x<eip712-signature>",
+    "authorization": {
+      "from": "0x<your-wallet>",
+      "to": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
+      "value": "10000",
+      "validAfter": "0",
+      "validBefore": "9999999999",
+      "nonce": "0x<random-bytes32>"
+    }
+  }
 }
 ```
 
-### Via Smart Contract
-
-```solidity
-// Anyone can register their agent
-lookout.registerAgent(agentAddress, erc8004TokenId);
-// Use 0 for erc8004TokenId if not registered in ERC-8004
-```
-
-Once registered, the Lookout auditor agent will periodically scan your agent's
-on-chain transactions and compute a TrustScore.
-
----
-
-## Verify the Human Behind Your Agent (+15 pts)
-
-Use [Self Protocol](https://self.xyz) to prove there's a verified human
-behind your agent without revealing your identity.
-
-1. Download the Self app (iOS/Android)
-2. Scan your passport or ID (ZK proof — no data leaves your device)
-3. Connect at https://lookout-agent.vercel.app/verify
-4. Your agent gets a `isHumanBacked = true` flag and +15 score bonus
-
----
-
-## Scoring Model
-
-```
-TrustScore (0-100) = base_score + bonuses + penalties
-
-base_score (0-60):
-  txCount        0-15  — more transactions = more behavioral data
-  successRate    0-15  — % of txs that didn't revert
-  accountAge     0-15  — days since first on-chain tx
-  counterparties 0-15  — unique addresses interacted with
-
-bonuses (0-30):
-  selfVerified   +15   — human behind agent verified via Self Protocol
-  ensName        +5    — agent has ENS identity
-  consistency    +10   — regular activity pattern, no suspicious bursts
-
-penalties (-30 to 0):
-  highRevertRate -10   — >20% of txs fail
-  dormant        -5    — no activity in 30+ days
-  suspicious     -15   — interaction with flagged addresses
-```
-
----
-
-## Trigger a Fresh Audit (x402 paid endpoint)
-
-The `/api/audit/:address` endpoint requires a micro-payment of **$0.01 USDC** on the same chain as the audit target. This is settled via the [x402 protocol](https://x402.org) — HTTP-native, no API key needed.
-
-### Using Thirdweb (recommended)
-
-```typescript
-import { createThirdwebClient } from 'thirdweb';
-import { wrapFetchWithPayment } from 'thirdweb/x402';
-
-const client = createThirdwebClient({ clientId: 'your-client-id' });
-// wallet = any connected thirdweb wallet (or private key adapter — see below)
-
-const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet);
-
-const res = await fetchWithPayment(
-  'https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo',
-  { method: 'POST' }
-);
-const audit = await res.json();
-// { score, level, breakdown, report, txHash, ... }
-```
-
-### Using any x402-compatible client
-
-Send a POST with an `X-PAYMENT` header containing a signed ERC-3009 `TransferWithAuthorization` payload (base64-encoded). The server returns HTTP 402 with a `PAYMENT-REQUIRED` header on the first call — decode it to get the exact payment requirements:
-
-```
-PAYMENT-REQUIRED: <base64-encoded JSON with network, asset, amount, payTo>
-```
-
-Payment details:
-- **Chain**: same as `?chain=` param (`eip155:42220` Celo or `eip155:8453` Base)
-- **Token**: USDC (`0xcebA9300f2b948710d2653dD7B07f33A8B32118C` on Celo, `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` on Base)
-- **Amount**: `10000` (0.01 USDC, 6 decimals)
-- **Pay to**: `0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772`
-- **Signature type**: `TransferWithAuthorization` (ERC-3009)
-
-### Private key adapter (server-to-server agents)
-
-```typescript
-import { createThirdwebClient, defineChain } from 'thirdweb';
-import { wrapFetchWithPayment } from 'thirdweb/x402';
-import { privateKeyToAccount } from 'viem/accounts';
-
-const account = privateKeyToAccount('0xYourPrivateKey');
-const chain   = defineChain(42220); // or 8453 for Base
-const client  = createThirdwebClient({ clientId: 'your-client-id' });
-
-const wallet = {
-  getAccount:  () => account,
-  getChain:    () => chain,
-  switchChain: async () => {},
-};
-
-const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
-const res = await fetchWithPayment(
-  'https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo',
-  { method: 'POST' },
-);
-```
-
----
-
-## Full API Reference
-
-```
-GET  /api/score/:address?chain=celo|base          → TrustScore (number, free)
-GET  /api/profile/:address?chain=celo|base         → Full AgentProfile (free)
-POST /api/audit/:address?chain=celo|base           → Fresh audit + onchain write ($0.01 USDC via x402)
-```
-
----
-
-## Contract Interface (ABI)
-
-```solidity
-interface ITrustRegistry {
-    function getScore(address agent) external view returns (uint256);
-    function getFullProfile(address agent) external view returns (AgentProfile memory);
-    function isHumanBacked(address agent) external view returns (bool);
-    function isRegistered(address agent) external view returns (bool);
-    function getTrustLevel(address agent) external view returns (string memory);
-    function getReportCID(address agent) external view returns (string memory);
-    function getScores(address[] calldata agents) external view returns (uint256[] memory);
-    function registerAgent(address agent, uint256 erc8004Id) external;
+The EIP-712 domain for signing:
+```json
+{
+  "name": "USD Coin",
+  "version": "2",
+  "chainId": 42220,
+  "verifyingContract": "0xcebA9300f2b948710d2653dD7B07f33A8B32118C"
 }
 ```
 
----
+The EIP-712 type:
+```
+TransferWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce)
+```
+
+For Base: use `chainId: 8453`, `verifyingContract: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, and `"network": "eip155:8453"` in the payload.
+
+### Step 3 — retry with payment header
+
+```
+POST https://lookout-agent.vercel.app/api/audit/{address}?chain=celo|base
+PAYMENT-SIGNATURE: <base64-encoded payment JSON from step 2>
+```
+
+On success, the server returns HTTP 200 with the audit result:
+
+```json
+{
+  "score": 73,
+  "level": "trusted",
+  "isHumanBacked": true,
+  "breakdown": {
+    "txCount": 12,
+    "successRate": 14,
+    "accountAge": 13,
+    "counterparties": 11,
+    "selfBonus": 15,
+    "ensBonus": 0,
+    "consistencyBonus": 10,
+    "penalties": -2
+  },
+  "report": "## Lookout Audit Report\n\n...",
+  "txHash": "0xabc...",
+  "chain": "celo"
+}
+```
+
+### Payment quick reference
+
+| Field        | Celo                                       | Base                                       |
+|--------------|--------------------------------------------|--------------------------------------------|
+| Chain ID     | 42220                                      | 8453                                       |
+| USDC address | 0xcebA9300f2b948710d2653dD7B07f33A8B32118C | 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 |
+| Amount       | 10000 (0.01 USDC, 6 decimals)              | 10000 (0.01 USDC, 6 decimals)              |
+| Pay to       | 0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772 | 0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772 |
+| USDC name    | USD Coin                                   | USD Coin                                   |
+| USDC version | 2                                          | 2                                          |
+
+The chain in `network` and `verifyingContract` must match the `?chain=` parameter in the URL.
+
+## How Scores Are Calculated
+
+The TrustScore is built from four base components (up to 15 points each): transaction count, success rate of non-reverted transactions, account age in days, and number of unique counterparties. On top of that, bonuses are added for human verification via Self Protocol (+15), having an ENS name (+5), and consistent non-bursty activity (+10). Penalties apply for high revert rates (-10), dormancy over 30 days (-5), and interactions with flagged addresses (-15). The total is capped at 100.
+
+## Registration and Reputation Building
+
+No registration is required. Lookout uses a credit bureau model: any address can be audited without prior sign-up. The first audit auto-registers the address. If the agent wants to link their ERC-8004 identity, they can optionally call registerAgent on the TrustRegistry contract with their agent address and ERC-8004 token ID.
+
+## Human Verification
+
+Agents can earn a +15 score bonus by proving a verified human is behind them using Self Protocol ZK proofs. The verification flow is at https://lookout-agent.vercel.app/verify. It uses a mobile app, a passport or ID scan, and produces a ZK proof that is verified onchain without revealing identity data.
+
+## Contract Addresses
+
+TrustRegistry on Celo (42220) and Base (8453): 0xCe74337add024796C9061D88C0d9fa4836d02FE7
+
+ERC-8004 IdentityRegistry (all chains): 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432
 
 ## Links
 
-- Website: https://lookout-agent.vercel.app
-- GitHub: https://github.com/sandralookout/lookout
-- Contracts: Celo `[ADDRESS]` | Base `[ADDRESS]`
-- Built with: ERC-8004, Self Protocol, Foundry, Next.js, Claude Code
-- Built for: [The Synthesis](https://synthesis.md) hackathon 2026
+Website: https://lookout-agent.vercel.app
+skill.md: https://lookout-agent.vercel.app/skill.md
+agent.json: https://lookout-agent.vercel.app/agent.json
+GitHub: https://github.com/sandragcarrillo/Lookout

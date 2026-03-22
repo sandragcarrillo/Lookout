@@ -1,8 +1,8 @@
 {
   "agent": "Lookout",
-  "version": "1.0.0",
-  "agentAddress": "[TBD]",
-  "erc8004TokenId": "[TBD]",
+  "version": "1.1.0",
+  "agentAddress": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
+  "erc8004TokenId": { "celo": 3261, "base": 35219 },
   "runs": [
     {
       "runId": "run_1773978011505",

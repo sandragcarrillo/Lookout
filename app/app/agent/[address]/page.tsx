@@ -176,7 +176,7 @@ function AgentPageInner() {
         // Also pick up ENS from audit result if available
         if (profileData?.ensName) setEnsName(profileData.ensName);
       })
-      .catch(err => setError(String(err)))
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load profile.'))
       .finally(() => setLoading(false));
   }, [address, chain]);
 
@@ -196,7 +196,13 @@ function AgentPageInner() {
       setNotFound(false);
       if (data.ensName) setEnsName(data.ensName);
     } catch (err) {
-      setError(String(err));
+      const msg =
+        err instanceof Error ? err.message :
+        typeof err === 'string' ? err :
+        (err as { shortMessage?: string; message?: string })?.shortMessage ||
+        (err as { shortMessage?: string; message?: string })?.message ||
+        'Audit failed. Please try again.';
+      setError(msg);
     } finally {
       setAuditing(false);
     }
@@ -215,6 +221,14 @@ function AgentPageInner() {
 
   const displayData = auditResult ?? profile;
   const lvl         = displayData ? LEVEL_CONFIG[displayData.level] : null;
+
+  // Rate-limit: contract enforces 1 audit per hour per agent
+  const nowSec           = Math.floor(Date.now() / 1000);
+  const lastAudit        = profile?.lastAuditedAt ?? 0;
+  const secondsSinceLast = lastAudit > 0 ? nowSec - lastAudit : Infinity;
+  const isRateLimited    = secondsSinceLast < 3600;
+  const minutesLeft      = isRateLimited ? Math.ceil((3600 - secondsSinceLast) / 60) : 0;
+  const hasBeenAudited   = lastAudit > 0;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -320,33 +334,54 @@ function AgentPageInner() {
             )}
           </div>
 
-          <button
-            onClick={runAudit}
-            disabled={auditing || isPaymentPending || !account}
-            className="flex-shrink-0 flex items-center gap-2.5 px-5 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              background: (auditing || isPaymentPending) ? 'var(--bg-3)' : account ? 'var(--accent)' : 'var(--bg-3)',
-              color: (auditing || isPaymentPending) ? 'var(--ink-2)' : account ? '#060508' : 'var(--ink-3)',
-              border: account ? 'none' : '1px solid var(--border)',
-            }}
-            onMouseEnter={e => { if (!auditing && !isPaymentPending && account) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
-            onMouseLeave={e => { if (!auditing && !isPaymentPending && account) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
-          >
-            {(auditing || isPaymentPending) ? (
-              <>
-                <span className="inline-block w-3.5 h-3.5 border border-t-transparent rounded-full animate-spin"
-                  style={{ borderColor: 'rgba(138,127,142,0.5)', borderTopColor: 'transparent' }} />
-                {isPaymentPending ? 'PAYING…' : 'SCANNING…'}
-              </>
-            ) : (
-              <>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                RUN AUDIT
-              </>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              onClick={runAudit}
+              disabled={auditing || isPaymentPending || !account || isRateLimited}
+              className="flex-shrink-0 flex items-center gap-2.5 px-5 py-2.5 text-sm font-mono font-medium tracking-widest uppercase transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: (auditing || isPaymentPending || isRateLimited) ? 'var(--bg-3)' : account ? 'var(--accent)' : 'var(--bg-3)',
+                color: (auditing || isPaymentPending || isRateLimited) ? 'var(--ink-2)' : account ? '#060508' : 'var(--ink-3)',
+                border: (account && !isRateLimited) ? 'none' : '1px solid var(--border)',
+              }}
+              onMouseEnter={e => { if (!auditing && !isPaymentPending && !isRateLimited && account) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
+              onMouseLeave={e => { if (!auditing && !isPaymentPending && !isRateLimited && account) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
+            >
+              {(auditing || isPaymentPending) ? (
+                <>
+                  <span className="inline-block w-3.5 h-3.5 border border-t-transparent rounded-full animate-spin"
+                    style={{ borderColor: 'rgba(138,127,142,0.5)', borderTopColor: 'transparent' }} />
+                  {isPaymentPending ? 'PAYING…' : 'SCANNING…'}
+                </>
+              ) : isRateLimited ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  RATE LIMITED
+                </>
+              ) : !account ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="3" y="11" width="18" height="11" rx="0" ry="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  CONNECT TO AUDIT
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  {hasBeenAudited ? 'UPDATE AUDIT' : 'RUN AUDIT'}
+                </>
+              )}
+            </button>
+            {isRateLimited && (
+              <span className="text-[10px] font-mono text-ink-3 tracking-wide">
+                next audit available in {minutesLeft} min
+              </span>
             )}
-          </button>
+          </div>
         </div>
 
         {/* ── Loading state — horizontal scanner ──────────────────── */}
@@ -391,7 +426,7 @@ function AgentPageInner() {
                   </span>
                 </div>
                 <p className="text-sm font-sans text-ink-2 font-light leading-relaxed max-w-xs">
-                  Behavioral scan of onchain activity — scored and written to the registry.
+                  Behavioral scan of onchain activity, scored and written to the registry.
                 </p>
                 {account && (
                   <div className="flex items-center gap-1.5 pt-0.5">
@@ -412,7 +447,7 @@ function AgentPageInner() {
                   onMouseEnter={e => { if (!auditing && !isPaymentPending) (e.currentTarget as HTMLButtonElement).style.background = '#c49840'; }}
                   onMouseLeave={e => { if (!auditing && !isPaymentPending) (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent)'; }}
                 >
-                  {isPaymentPending ? 'PAYING…' : auditing ? 'SCANNING…' : 'RUN FIRST AUDIT'}
+                  {isPaymentPending ? 'PAYING…' : auditing ? 'SCANNING…' : hasBeenAudited ? 'UPDATE AUDIT' : 'RUN FIRST AUDIT'}
                 </button>
               ) : (
                 <div className="flex-shrink-0 flex flex-col items-start gap-1.5">

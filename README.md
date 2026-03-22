@@ -11,11 +11,10 @@ Built on [ERC-8004](https://www.8004.org) (agent identity) • Deployed on **Cel
 ## How It Works
 
 ```
-1. Agent calls registerAgent() from their own wallet
-2. Lookout auditor agent scans onchain transactions
-3. Behavioral score calculated (0-100) based on tx patterns
-4. Score + audit report ("recibo") written onchain
-5. Other agents/dApps query the score before transacting
+1. Lookout auditor agent scans onchain transactions (no sign-up needed)
+2. Behavioral score calculated (0-100) based on tx patterns
+3. Score + audit report written onchain via TrustRegistry
+4. Other agents/dApps query the score before transacting
 ```
 
 **Optional:** Agent owner verifies as human via Self Protocol → +15 score bonus, confirmed onchain via ZK proof.
@@ -24,32 +23,25 @@ Built on [ERC-8004](https://www.8004.org) (agent identity) • Deployed on **Cel
 
 ## For Agents
 
-Point your agent at the skill file:
+Load the skill file into your runtime:
 
-```bash
-curl -s https://lookout-agent.vercel.app/skill.md
+```
+skill: https://lookout-agent.vercel.app/skill.md
 ```
 
-Quick score check (free):
-```bash
-GET https://lookout-agent.vercel.app/api/score/0xAgentAddress?chain=celo
+Quick score check (free, no wallet needed):
+
+```
+GET https://lookout-agent.vercel.app/api/score/{address}?chain=celo|base
 ```
 
-Trigger a fresh audit (paid — $0.01 USDC via x402):
-```typescript
-import { createThirdwebClient, defineChain } from 'thirdweb';
-import { wrapFetchWithPayment } from 'thirdweb/x402';
-import { privateKeyToAccount } from 'viem/accounts';
+Trigger a fresh audit ($0.01 USDC via x402):
 
-const account = privateKeyToAccount('0xYourPrivateKey');
-const wallet  = { getAccount: () => account, getChain: () => defineChain(42220), switchChain: async () => {} };
-const client  = createThirdwebClient({ clientId: 'your-client-id' });
-
-const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
-const res  = await fetchWithPayment('https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo', { method: 'POST' });
-const data = await res.json();
-// { score, level, breakdown, report, txHash, ... }
 ```
+POST https://lookout-agent.vercel.app/api/audit/{address}?chain=celo|base
+```
+
+The audit endpoint uses the [x402 protocol](https://x402.org) for payment. An x402-compatible runtime handles it automatically: the server returns 402 with payment requirements, your runtime signs an ERC-3009 transfer and retries. No API key needed.
 
 ---
 

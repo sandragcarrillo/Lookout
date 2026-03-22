@@ -324,7 +324,7 @@ export default function VerifyPage() {
                 <>
                   <div className="font-semibold text-ink-2">
                     {statusResult.reason === 'NOT_REGISTERED'  && 'Not registered on Self Agent ID'}
-                    {statusResult.reason === 'NO_HUMAN_PROOF'  && 'Registered — no human proof yet'}
+                    {statusResult.reason === 'NO_HUMAN_PROOF'  && 'Registered, no human proof yet'}
                     {statusResult.reason === 'PROOF_EXPIRED'   && 'Proof expired'}
                   </div>
                   {statusResult.reason === 'PROOF_EXPIRED' && statusResult.reauthUrl && (
