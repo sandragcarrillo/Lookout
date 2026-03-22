@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   // Don't bundle thirdweb through webpack — it uses Node.js internals
   // that webpack transforms incorrectly, breaking the auth header generation
   serverExternalPackages: ['thirdweb'],
+  async rewrites() {
+    return [{ source: '/skill.md', destination: '/api/skill' }];
+  },
   webpack: (config) => {
     config.resolve.alias['@agent'] = path.resolve(__dirname, '../agent');
     // NodeNext uses .js imports that actually point to .ts files — remap them
