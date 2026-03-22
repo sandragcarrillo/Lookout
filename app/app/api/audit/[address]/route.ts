@@ -4,8 +4,8 @@ import { defineChain } from 'thirdweb';
 import { settlePayment } from 'thirdweb/x402';
 import { audit } from '@agent/auditor';
 import type { AuditResult } from '@agent/auditor';
-import { checkSelfSignedRequest } from '../../../../lib/selfVerifier';
-import { PAY_TO, USDC, getThirdwebFacilitator } from '../../../../lib/x402';
+import { checkSelfSignedRequest } from '@lib/selfVerifier';
+import { PAY_TO, USDC, getThirdwebFacilitator } from '@lib/x402';
 
 export const maxDuration = 60; // seconds — audits take ~10-15s
 
