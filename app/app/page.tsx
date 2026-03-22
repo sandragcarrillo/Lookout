@@ -282,7 +282,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto flex items-center justify-between text-[11px] text-ink-3 font-mono tracking-wide">
           <span>© 2026 LOOKOUT · The Synthesis</span>
           <div className="flex gap-6">
-            <a href="https://lookout.watch" className="hover:text-ink transition-colors uppercase">lookout.watch</a>
+            <a href="https://lookout-agent.vercel.app" className="hover:text-ink transition-colors uppercase">lookout-agent.vercel.app</a>
             <a href="/skill.md" className="hover:text-ink transition-colors uppercase">skill.md</a>
             <a href="/api/score/0xCd08B2269907d34Ff99C46AcfFE7a2e90059a2D8" className="hover:text-ink transition-colors uppercase">API</a>
           </div>

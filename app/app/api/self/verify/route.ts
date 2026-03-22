@@ -17,7 +17,7 @@ const configStore = new DefaultConfigStore({
   ofac: true,
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lookout.watch';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://lookout-agent.vercel.app';
 
 const verifier = new SelfBackendVerifier(
   'lookout-trust-verification',                // scope

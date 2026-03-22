@@ -12,7 +12,7 @@ It audits agent behavior from public on-chain transactions and writes a composab
 ### Via API
 
 ```bash
-GET https://lookout.watch/api/score/{walletAddress}?chain=celo|base [TBD]
+GET https://lookout-agent.vercel.app/api/score/{walletAddress}?chain=celo|base [TBD]
 ```
 
 Response:
@@ -107,7 +107,7 @@ IF score < 26 OR not registered   → ABORT — find another counterparty
 ### Via API
 
 ```bash
-POST https://lookout.watch/api/register
+POST https://lookout-agent.vercel.app/api/register
 Content-Type: application/json
 
 {
@@ -137,7 +137,7 @@ behind your agent without revealing your identity.
 
 1. Download the Self app (iOS/Android)
 2. Scan your passport or ID (ZK proof — no data leaves your device)
-3. Connect at https://lookout.watch/verify
+3. Connect at https://lookout-agent.vercel.app/verify
 4. Your agent gets a `isHumanBacked = true` flag and +15 score bonus
 
 ---
@@ -182,7 +182,7 @@ const client = createThirdwebClient({ clientId: 'your-client-id' });
 const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet);
 
 const res = await fetchWithPayment(
-  'https://lookout.watch/api/audit/0xAgentAddress?chain=celo',
+  'https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo',
   { method: 'POST' }
 );
 const audit = await res.json();
@@ -223,7 +223,7 @@ const wallet = {
 
 const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
 const res = await fetchWithPayment(
-  'https://lookout.watch/api/audit/0xAgentAddress?chain=celo',
+  'https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo',
   { method: 'POST' },
 );
 ```
@@ -259,7 +259,7 @@ interface ITrustRegistry {
 
 ## Links
 
-- Website: https://lookout.watch
+- Website: https://lookout-agent.vercel.app
 - GitHub: https://github.com/sandralookout/lookout
 - Contracts: Celo `[ADDRESS]` | Base `[ADDRESS]`
 - Built with: ERC-8004, Self Protocol, Foundry, Next.js, Claude Code

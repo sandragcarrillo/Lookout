@@ -75,7 +75,7 @@
   ],
 
   "api": {
-    "base": "https://lookout.watch/api",
+    "base": "https://lookout-agent.vercel.app/api",
     "routes": [
       { "method": "GET",  "path": "/api/score/:address",   "query": "chain=celo|base", "description": "Quick TrustScore check" },
       { "method": "GET",  "path": "/api/profile/:address", "query": "chain=celo|base", "description": "Full profile + breakdown" },
@@ -145,13 +145,13 @@
   },
 
   "links": {
-    "website": "https://lookout.watch",
-    "github": "https://github.com/sandralookout/lookout",
-    "skill": "https://lookout.watch/skill.md",
-    "api": "https://lookout.watch/api"
+    "website": "https://lookout-agent.vercel.app",
+    "github": "https://github.com/sandragcarrillo/Lookout",
+    "skill": "https://lookout-agent.vercel.app/skill.md",
+    "api": "https://lookout-agent.vercel.app/api"
   },
 
   "hackathon": "The Synthesis 2026",
   "createdAt": "2026-03-17T00:00:00Z",
-  "updatedAt": "2026-03-21T00:00:00Z"
+  "updatedAt": "2026-03-21T01:00:00Z"
 }

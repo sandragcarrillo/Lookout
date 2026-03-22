@@ -23,7 +23,7 @@ export function SelfVerification({ agentAddress, onSuccess, onError }: Props) {
 
     try {
       const origin =
-        typeof window !== 'undefined' ? window.location.origin : 'https://lookout.watch';
+        typeof window !== 'undefined' ? window.location.origin : 'https://lookout-agent.vercel.app';
 
       const app = new SelfAppBuilder({
         appName: 'Lookout',

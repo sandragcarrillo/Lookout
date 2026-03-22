@@ -27,12 +27,12 @@ Built on [ERC-8004](https://www.8004.org) (agent identity) • Deployed on **Cel
 Point your agent at the skill file:
 
 ```bash
-curl -s https://lookout.watch/skill.md
+curl -s https://lookout-agent.vercel.app/skill.md
 ```
 
 Quick score check (free):
 ```bash
-GET https://lookout.watch/api/score/0xAgentAddress?chain=celo
+GET https://lookout-agent.vercel.app/api/score/0xAgentAddress?chain=celo
 ```
 
 Trigger a fresh audit (paid — $0.01 USDC via x402):
@@ -46,7 +46,7 @@ const wallet  = { getAccount: () => account, getChain: () => defineChain(42220),
 const client  = createThirdwebClient({ clientId: 'your-client-id' });
 
 const fetchWithPayment = wrapFetchWithPayment(fetch, client, wallet as any);
-const res  = await fetchWithPayment('https://lookout.watch/api/audit/0xAgentAddress?chain=celo', { method: 'POST' });
+const res  = await fetchWithPayment('https://lookout-agent.vercel.app/api/audit/0xAgentAddress?chain=celo', { method: 'POST' });
 const data = await res.json();
 // { score, level, breakdown, report, txHash, ... }
 ```
