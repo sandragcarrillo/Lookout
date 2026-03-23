@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { isAddress, getAddress } from 'viem';
@@ -122,12 +123,18 @@ function AnimatedScore({ target, color }: { target: number; color: string }) {
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
-export default function AgentPage() {
+const AgentPageNoSSR = dynamic(() => Promise.resolve(AgentPageClient), { ssr: false });
+
+function AgentPageClient() {
   return (
     <ThirdwebProvider>
       <AgentPageInner />
     </ThirdwebProvider>
   );
+}
+
+export default function AgentPage() {
+  return <AgentPageNoSSR />;
 }
 
 function AgentPageInner() {

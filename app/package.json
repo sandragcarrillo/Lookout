@@ -10,7 +10,7 @@
   "dependencies": {
     "@selfxyz/agent-sdk": "^0.2.1",
     "@selfxyz/core": "^1.0.8",
-    "@selfxyz/qrcode": "^1.0.11",
+    "@selfxyz/qrcode": "1.0.11",
     "@x402/core": "^2.7.0",
     "@x402/evm": "^2.7.0",
     "@x402/fetch": "^2.7.0",

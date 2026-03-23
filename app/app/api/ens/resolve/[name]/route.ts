@@ -4,7 +4,7 @@ import { mainnet } from 'viem/chains';
 
 const client = createPublicClient({
   chain: mainnet,
-  transport: http('https://eth.llamarpc.com'),
+  transport: http(process.env.ETHEREUM_RPC_URL ?? 'https://eth.llamarpc.com'),
 });
 
 export async function GET(
