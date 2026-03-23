@@ -2,7 +2,10 @@
   "agent": "Lookout",
   "version": "1.1.0",
   "agentAddress": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
-  "erc8004TokenId": { "celo": 3261, "base": 35219 },
+  "erc8004TokenId": {
+    "celo": 3261,
+    "base": 35219
+  },
   "runs": [
     {
       "runId": "run_1773978011505",
@@ -2843,6 +2846,151 @@
         "totalRetries": 0,
         "totalDurationMs": 11011,
         "budgetUsed": "5/10"
+      }
+    },
+    {
+      "runId": "run_1774232934014",
+      "type": "audit",
+      "status": "completed",
+      "startedAt": "2026-03-23T02:28:54.013Z",
+      "completedAt": "2026-03-23T02:28:57.828Z",
+      "durationMs": 3813,
+      "chain": "celo",
+      "input": {
+        "targetAddress": "0xC15366fD9078AC523B04077b0F9632c9dBBbDf29",
+        "requestedBy": "cli",
+        "trigger": "manual"
+      },
+      "decisions": [
+        {
+          "step": 1,
+          "decision": "Agent not yet in TrustRegistry — updateScore() will auto-register on first audit",
+          "reasoning": "Credit bureau model: auditor can score any address; contract auto-registers on first updateScore() call",
+          "outcome": "proceed_with_write"
+        },
+        {
+          "step": 2,
+          "decision": "Fetch recent txs + first tx (for account age), check Self Protocol, resolve ENS",
+          "reasoning": "Budget: 10 API calls max. Recent txs (4 pages) = 4, first tx = 1, Self = onchain, ENS = 1. Total ≤ 6.",
+          "outcome": "within_budget"
+        },
+        {
+          "step": 3,
+          "decision": "Score computed: 0/100 (not_trusted)",
+          "reasoning": "base=0, bonuses=0, penalties=-5",
+          "outcome": "score_0"
+        },
+        {
+          "step": 4,
+          "decision": "Validation passed",
+          "reasoning": "Score in [0,100], all breakdown fields within spec ranges",
+          "outcome": "valid"
+        },
+        {
+          "step": 5,
+          "decision": "Score written onchain: 0x465b066c996c216cf5a1ce3d4a97710266e1051d5a89227ba7ef6bf020c2802d",
+          "reasoning": "Called TrustRegistry.updateScore() — auto-registers agent on first audit if not already registered",
+          "outcome": "written"
+        }
+      ],
+      "toolCalls": [
+        {
+          "tool": "trust_registry_read",
+          "action": "isRegistered(0xC15366fD9078AC523B04077b0F9632c9dBBbDf29)",
+          "startedAt": "2026-03-23T02:28:54.016Z",
+          "completedAt": "2026-03-23T02:28:54.467Z",
+          "durationMs": 451,
+          "success": true,
+          "result": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xC15366fD9078AC523B04077b0F9632c9dBBbDf29 (recent, desc)",
+          "startedAt": "2026-03-23T02:28:54.467Z",
+          "completedAt": "2026-03-23T02:28:55.611Z",
+          "durationMs": 1144,
+          "success": true,
+          "txsFetched": 0,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "blockscout_api",
+          "action": "GET txlist?address=0xC15366fD9078AC523B04077b0F9632c9dBBbDf29&sort=asc (oldest tx)",
+          "startedAt": "2026-03-23T02:28:55.611Z",
+          "completedAt": "2026-03-23T02:28:56.306Z",
+          "durationMs": 695,
+          "success": false,
+          "firstTxAt": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "self_protocol_verify",
+          "action": "isVerifiedAgent(0xC15366fD9078AC523B04077b0F9632c9dBBbDf29)",
+          "startedAt": "2026-03-23T02:28:56.306Z",
+          "completedAt": "2026-03-23T02:28:56.617Z",
+          "durationMs": 311,
+          "success": true,
+          "isHumanBacked": false,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "ens_resolver",
+          "action": "getEnsName(0xC15366fD9078AC523B04077b0F9632c9dBBbDf29)",
+          "startedAt": "2026-03-23T02:28:56.617Z",
+          "completedAt": "2026-03-23T02:28:57.002Z",
+          "durationMs": 385,
+          "success": true,
+          "result": null,
+          "retries": 0,
+          "error": null
+        },
+        {
+          "tool": "trust_registry_write",
+          "action": "updateScore(0xC15366fD9078AC523B04077b0F9632c9dBBbDf29, 0, breakdown, \"\")",
+          "startedAt": "2026-03-23T02:28:57.003Z",
+          "completedAt": "2026-03-23T02:28:57.826Z",
+          "durationMs": 823,
+          "success": true,
+          "txHash": "0x465b066c996c216cf5a1ce3d4a97710266e1051d5a89227ba7ef6bf020c2802d",
+          "retries": 0,
+          "error": null
+        }
+      ],
+      "output": {
+        "targetAddress": "0xC15366fD9078AC523B04077b0F9632c9dBBbDf29",
+        "score": 0,
+        "level": "not_trusted",
+        "breakdown": {
+          "txCount": 0,
+          "successRate": 0,
+          "accountAge": 0,
+          "counterparties": 0,
+          "selfBonus": 0,
+          "ensBonus": 0,
+          "consistencyBonus": 0,
+          "penalties": -5
+        },
+        "totalTxs": 0,
+        "successfulTxs": 0,
+        "failedTxs": 0,
+        "uniqueCounterparties": 0,
+        "accountAgeDays": 0,
+        "isHumanBacked": false,
+        "ensName": null,
+        "reportCID": "0xc63c05dad596ce09693ef22219ced4dfdfcce12ebf022cbb234ebc58ee3ca933",
+        "txHash": "0x465b066c996c216cf5a1ce3d4a97710266e1051d5a89227ba7ef6bf020c2802d",
+        "reportPath": "/Users/sc/Dev/Lookout/reports/0xC15366_celo_2026-03-23.md"
+      },
+      "computeMetrics": {
+        "totalApiCalls": 2,
+        "totalRetries": 0,
+        "totalDurationMs": 3813,
+        "budgetUsed": "2/10"
       }
     }
   ]
