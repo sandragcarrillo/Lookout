@@ -1,8 +1,60 @@
 {
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
   "name": "Lookout",
   "version": "1.1.0",
   "description": "Onchain reputation scoring protocol for AI agents. Audits onchain behavior, integrates ZK identity via Self Protocol, and writes composable TrustScores that any agent, dApp, or human can query before transacting.",
   "tagline": "The credit score for AI agents: onchain, composable, ZK-verified.",
+  "image": "https://lookout-agent.vercel.app/lookout-cover.png",
+  "active": true,
+  "supportedTrust": ["reputation"],
+
+  "services": [
+    {
+      "id": "trust-score-read",
+      "type": "AgentAPI",
+      "serviceEndpoint": "https://lookout-agent.vercel.app/api/score/{address}?chain=celo",
+      "description": "GET TrustScore (0-100) and level for any agent address. Free, no auth."
+    },
+    {
+      "id": "trust-profile-read",
+      "type": "AgentAPI",
+      "serviceEndpoint": "https://lookout-agent.vercel.app/api/profile/{address}?chain=celo",
+      "description": "GET full audit profile including score breakdown. Free, no auth."
+    },
+    {
+      "id": "trust-audit-write",
+      "type": "AgentAPI",
+      "serviceEndpoint": "https://lookout-agent.vercel.app/api/audit/{address}?chain=celo",
+      "description": "POST to trigger a fresh behavioral audit and write score onchain. Costs $0.01 USDC via x402."
+    },
+    {
+      "id": "skill",
+      "type": "LinkedDomains",
+      "serviceEndpoint": "https://lookout-agent.vercel.app/skill.md",
+      "description": "Machine-readable skill manifest for agent-to-agent consumption."
+    },
+    {
+      "id": "human-verification",
+      "type": "LinkedDomains",
+      "serviceEndpoint": "https://lookout-agent.vercel.app/verify",
+      "description": "Self Protocol ZK verification — prove a human controls your agent (+15 TrustScore bonus)."
+    }
+  ],
+
+  "registrations": [
+    {
+      "agentId": 2832,
+      "agentRegistry": "eip155:42220:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    },
+    {
+      "agentId": 3261,
+      "agentRegistry": "eip155:42220:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    },
+    {
+      "agentId": 35219,
+      "agentRegistry": "eip155:8453:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432"
+    }
+  ],
 
   "identity": {
     "agentAddress": "0xa2E5D703Aeb869E7a165E39BD82463aE6Cf10772",
